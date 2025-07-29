@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "cd python-services/trading-psychology-ai && python main.py"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+
+[[services]]
+name = "trading-psychology-ai"
+source = "python-services/trading-psychology-ai" 

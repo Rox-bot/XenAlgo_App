@@ -1,0 +1,29 @@
+# Frontend files (React/TypeScript)
+src/
+public/
+index.html
+vite.config.ts
+tsconfig*.json
+package.json
+package-lock.json
+bun.lockb
+node_modules/
+.eslintrc*
+postcss.config.js
+tailwind.config.ts
+
+# Development files
+*.log
+.env.local
+.env.development
+.env.test
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db 
