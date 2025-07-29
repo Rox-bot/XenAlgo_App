@@ -189,11 +189,6 @@ const Navbar = () => {
 
           {/* Right Side */}
           <div className="flex items-center space-x-4">
-            {/* Debug theme info */}
-            <div className="theme-debug">
-              Theme: {document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
-            </div>
-            
             <ThemeToggle />
             
             {user ? (
