@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { UserPreferencesProvider } from "@/contexts/UserPreferencesContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
-import { useAuth, AuthProvider } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
@@ -57,12 +57,11 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <UserPreferencesProvider>
-            <SubscriptionProvider>
-              <CurrencyProvider>
-                <TooltipProvider>
+      <QueryClientProvider client={queryClient}>
+        <UserPreferencesProvider>
+          <SubscriptionProvider>
+            <CurrencyProvider>
+              <TooltipProvider>
                   <Toaster />
                   <Sonner />
                   <BrowserRouter>
@@ -141,7 +140,6 @@ const App = () => {
           </SubscriptionProvider>
         </UserPreferencesProvider>
       </QueryClientProvider>
-        </AuthProvider>
     </ErrorBoundary>
   );
 };
