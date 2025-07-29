@@ -1,4 +1,4 @@
-# Frontend files (React/TypeScript)
+# Frontend files (React/TypeScript) - EXCLUDE ALL
 src/
 public/
 index.html
@@ -11,6 +11,8 @@ node_modules/
 .eslintrc*
 postcss.config.js
 tailwind.config.ts
+components.json
+README.md
 
 # Development files
 *.log
@@ -26,4 +28,11 @@ tailwind.config.ts
 
 # OS files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+
+# Only include Python service
+!python-services/trading-psychology-ai/ 
