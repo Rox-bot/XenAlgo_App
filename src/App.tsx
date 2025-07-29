@@ -39,6 +39,7 @@ import OptionSimulator from "./pages/OptionSimulator";
 import OptionStrategyRecommender from "./pages/OptionStrategyRecommender";
 import MarketInsights from "./pages/MarketInsights";
 import ChartingPlatform from "./pages/ChartingPlatform";
+import TradingPsychologyGuardian from "./pages/TradingPsychologyGuardian";
 import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
@@ -125,6 +126,11 @@ const App = () => {
                     } />
                     <Route path="/market-insights" element={<MarketInsights />} />
                     <Route path="/charting" element={<ChartingPlatform />} />
+                    <Route path="/trading-psychology" element={
+                      <ProtectedRoute>
+                        <TradingPsychologyGuardian />
+                      </ProtectedRoute>
+                    } />
                     
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />

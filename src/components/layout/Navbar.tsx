@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { 
@@ -102,8 +102,8 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 isActive('/') ? 'text-primary' : 'text-muted-foreground'
               }`}
@@ -154,11 +154,14 @@ const Navbar = () => {
                 <DropdownMenuItem>
                   <Link to="/trading-journal/settings" className="w-full">Journal Settings</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link to="/trading-psychology" className="w-full">Trading Psychology</Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link 
-              to="/courses" 
+            <Link
+              to="/courses"
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 isActive('/courses') ? 'text-primary' : 'text-muted-foreground'
               }`}
@@ -166,7 +169,7 @@ const Navbar = () => {
               Courses
             </Link>
 
-            <Link 
+            <Link
               to="/market-insights" 
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 isActive('/market-insights') ? 'text-primary' : 'text-muted-foreground'
@@ -230,7 +233,7 @@ const Navbar = () => {
                     Get Started
                   </Button>
                 </Link>
-              </div>
+          </div>
             )}
 
             {/* Mobile Menu Button */}
@@ -243,21 +246,21 @@ const Navbar = () => {
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
+          </div>
         </div>
-      </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
           <div className="container mx-auto px-4 py-4 space-y-4">
-            <Link 
-              to="/" 
+              <Link
+                to="/"
               className={`block text-sm font-medium transition-colors hover:text-primary ${
                 isActive('/') ? 'text-primary' : 'text-muted-foreground'
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Home
+              >
+                Home
             </Link>
             
             <div className="space-y-2">
@@ -269,29 +272,29 @@ const Navbar = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Financial Calculators
-                </Link>
-                <Link 
+              </Link>
+              <Link
                   to="/screeners" 
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
-                >
+              >
                   Market Screeners
-                </Link>
-                <Link 
-                  to="/indicators" 
+              </Link>
+              <Link
+                to="/indicators"
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
-                >
+              >
                   Technical Indicators
-                </Link>
-                <Link 
+              </Link>
+              <Link
                   to="/option-simulator" 
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
-                >
+              >
                   Option Simulator
-                </Link>
-                <Link 
+              </Link>
+              <Link
                   to="/option-recommender" 
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -308,16 +311,16 @@ const Navbar = () => {
                   to="/trading-journal" 
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
-                >
+              >
                   Trading Journal
-                </Link>
-                <Link 
+              </Link>
+              <Link
                   to="/trading-journal/analytics" 
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
-                >
+              >
                   Trading Analytics
-                </Link>
+              </Link>
                 <Link 
                   to="/trading-journal/settings" 
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -328,15 +331,15 @@ const Navbar = () => {
               </div>
             </div>
             
-            <Link 
-              to="/courses" 
+              <Link
+                to="/courses"
               className={`block text-sm font-medium transition-colors hover:text-primary ${
                 isActive('/courses') ? 'text-primary' : 'text-muted-foreground'
               }`}
               onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Courses
-            </Link>
+              >
+                Courses
+              </Link>
 
             <Link 
               to="/market-insights" 
@@ -359,13 +362,13 @@ const Navbar = () => {
             
             {user && (
               <div className="space-y-2 pt-4 border-t border-border">
-                <Link 
-                  to="/dashboard" 
+              <Link
+                to="/dashboard"
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
+              >
+                Dashboard
+              </Link>
                 <Link 
                   to="/trading-journal" 
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -381,19 +384,19 @@ const Navbar = () => {
                   Settings
                 </Link>
                 <button 
-                  onClick={() => {
-                    signOut();
+                      onClick={() => {
+                        signOut();
                     setIsMobileMenuOpen(false);
-                  }}
+                      }}
                   className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Sign Out
+                    >
+                      Sign Out
                 </button>
               </div>
             )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </nav>
   );
 };

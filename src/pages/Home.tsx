@@ -55,8 +55,8 @@ const Home = () => {
           badge: "Popular",
           gradient: "from-blue-500 to-cyan-500"
         },
-        {
-          icon: Brain,
+    {
+      icon: Brain,
           title: "AI Strategy Recommender",
           description: "Get intelligent option strategy recommendations based on market conditions",
           link: "/option-recommender",
@@ -70,9 +70,9 @@ const Home = () => {
           link: "/option-simulator",
           badge: "Advanced",
           gradient: "from-green-500 to-emerald-500"
-        },
-        {
-          icon: BarChart3,
+    },
+    {
+      icon: BarChart3,
           title: "Trading Analytics",
           description: "Comprehensive performance analysis with charts and insights",
           link: "/trading-journal/analytics",
@@ -231,7 +231,7 @@ const Home = () => {
               <span className="bg-gradient-to-r from-accent to-accent/80 bg-clip-text text-transparent">
                 XenAlgo
               </span>
-            </h1>
+              </h1>
             
             <p className="text-xl lg:text-2xl opacity-90 mb-12 max-w-3xl mx-auto leading-relaxed">
               AI-powered trading tools, advanced analytics, and intelligent strategy recommendations for modern traders.
@@ -247,27 +247,27 @@ const Home = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/auth">
+                <Link to="/auth">
                 <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                   Start Trading Free
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Button 
-                size="lg" 
-                variant="outline" 
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
                 className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 text-lg px-8 py-6 rounded-full backdrop-blur-sm"
-                onClick={() => {
-                  const pricingSection = document.getElementById('pricing-section');
-                  pricingSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
+                  onClick={() => {
+                    const pricingSection = document.getElementById('pricing-section');
+                    pricingSection?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
                 <Play className="mr-2 h-5 w-5" />
                 Watch Demo
-              </Button>
+                </Button>
+              </div>
             </div>
-          </div>
-        </div>
+                  </div>
       </section>
 
       {/* Stats Section */}
@@ -316,9 +316,9 @@ const Home = () => {
                           <div className="flex items-center gap-4">
                             <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg`}>
                               <feature.icon className="h-7 w-7 text-white" />
-                            </div>
+                  </div>
                             <div>
-                              <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
                               {feature.badge && (
                                 <Badge variant="secondary" className="mt-2 bg-gradient-to-r from-accent/20 to-accent/10 text-accent border-accent/30">
                                   {feature.badge}
@@ -332,13 +332,13 @@ const Home = () => {
                             </Button>
                           </Link>
                         </div>
-                      </CardHeader>
+                </CardHeader>
                       <CardContent className="relative">
                         <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
               </TabsContent>
             ))}
           </Tabs>
@@ -445,7 +445,7 @@ const Home = () => {
                       : 'bg-muted hover:bg-muted/80'
                   }`}>
                     {plan.cta}
-                  </Button>
+                    </Button>
                 </CardContent>
               </Card>
             ))}
@@ -479,7 +479,7 @@ const Home = () => {
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <span className="text-sm font-semibold text-primary">{testimonial.avatar}</span>
                     </div>
-                    <div>
+                  <div>
                       <div className="font-semibold">{testimonial.name}</div>
                       <div className="text-sm text-muted-foreground">{testimonial.role}</div>
                     </div>

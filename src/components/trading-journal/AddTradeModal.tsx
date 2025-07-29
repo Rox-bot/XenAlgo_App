@@ -20,15 +20,15 @@ interface AddTradeModalProps {
 }
 
 const initialFormData = {
-  symbol: "",
-  trade_type: "LONG" as "LONG" | "SHORT",
-  entry_price: "",
-  quantity: "",
-  entry_date: new Date().toISOString().slice(0, 16),
-  stop_loss: "",
-  take_profit: "",
-  setup_type: "",
-  entry_reason: "",
+    symbol: "",
+    trade_type: "LONG" as "LONG" | "SHORT",
+    entry_price: "",
+    quantity: "",
+    entry_date: new Date().toISOString().slice(0, 16),
+    stop_loss: "",
+    take_profit: "",
+    setup_type: "",
+    entry_reason: "",
 };
 
 export function AddTradeModal({ open, onOpenChange, onAddTrade, accountCapital }: AddTradeModalProps) {
@@ -185,7 +185,7 @@ export function AddTradeModal({ open, onOpenChange, onAddTrade, accountCapital }
         <DialogHeader>
           <DialogTitle>Add New Trade</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Trade Details */}
           <Card>
@@ -219,7 +219,7 @@ export function AddTradeModal({ open, onOpenChange, onAddTrade, accountCapital }
                       <Label htmlFor="short">Short</Label>
                     </div>
                   </RadioGroup>
-                </div>
+              </div>
 
                 <div>
                   <Label htmlFor="entryPrice">Entry Price *</Label>
@@ -246,9 +246,9 @@ export function AddTradeModal({ open, onOpenChange, onAddTrade, accountCapital }
                     className={errors.quantity ? "border-red-500" : ""}
                   />
                   {errors.quantity && <p className="text-sm text-red-500 mt-1">{errors.quantity}</p>}
-                </div>
+              </div>
 
-                <div>
+              <div>
                   <Label htmlFor="entryDate">Entry Date *</Label>
                   <Input
                     id="entryDate"
@@ -256,14 +256,14 @@ export function AddTradeModal({ open, onOpenChange, onAddTrade, accountCapital }
                     value={formData.entry_date}
                     onChange={(e) => setFormData({...formData, entry_date: e.target.value})}
                   />
-                </div>
+              </div>
 
                 <div className="flex items-end">
                   <div className="w-full">
                     <Label>Investment Amount</Label>
                     <p className="text-lg font-semibold text-primary">
                       {formatCurrency(calculateInvestment())}
-                    </p>
+                  </p>
                   </div>
                 </div>
               </div>
@@ -284,33 +284,33 @@ export function AddTradeModal({ open, onOpenChange, onAddTrade, accountCapital }
 
               {showRiskManagement && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-                  <div>
-                    <Label htmlFor="stopLoss">Stop Loss</Label>
-                    <Input
-                      id="stopLoss"
-                      type="number"
-                      step="0.01"
-                      value={formData.stop_loss}
-                      onChange={(e) => setFormData({...formData, stop_loss: e.target.value})}
-                      placeholder="0.00"
+                    <div>
+                      <Label htmlFor="stopLoss">Stop Loss</Label>
+                      <Input
+                        id="stopLoss"
+                        type="number"
+                        step="0.01"
+                        value={formData.stop_loss}
+                        onChange={(e) => setFormData({...formData, stop_loss: e.target.value})}
+                        placeholder="0.00"
                       className={errors.stop_loss ? "border-red-500" : ""}
-                    />
+                      />
                     {errors.stop_loss && <p className="text-sm text-red-500 mt-1">{errors.stop_loss}</p>}
-                  </div>
+                    </div>
 
-                  <div>
-                    <Label htmlFor="takeProfit">Take Profit</Label>
-                    <Input
-                      id="takeProfit"
-                      type="number"
-                      step="0.01"
-                      value={formData.take_profit}
-                      onChange={(e) => setFormData({...formData, take_profit: e.target.value})}
-                      placeholder="0.00"
+                    <div>
+                      <Label htmlFor="takeProfit">Take Profit</Label>
+                      <Input
+                        id="takeProfit"
+                        type="number"
+                        step="0.01"
+                        value={formData.take_profit}
+                        onChange={(e) => setFormData({...formData, take_profit: e.target.value})}
+                        placeholder="0.00"
                       className={errors.take_profit ? "border-red-500" : ""}
-                    />
+                      />
                     {errors.take_profit && <p className="text-sm text-red-500 mt-1">{errors.take_profit}</p>}
-                  </div>
+                    </div>
 
                   <div>
                     <Label>Risk Amount</Label>
@@ -330,8 +330,8 @@ export function AddTradeModal({ open, onOpenChange, onAddTrade, accountCapital }
                     <Label>Risk:Reward Ratio</Label>
                     <p className="text-lg font-semibold text-blue-500">
                       {calculateRRRatio().toFixed(2)}:1
-                    </p>
-                  </div>
+                        </p>
+                    </div>
                 </div>
               )}
             </CardContent>

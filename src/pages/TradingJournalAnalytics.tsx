@@ -163,31 +163,31 @@ export default function TradingJournalAnalytics() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link to="/trading-journal">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Journal
-            </Button>
-          </Link>
-          <div>
+            <Link to="/trading-journal">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Journal
+              </Button>
+            </Link>
+            <div>
             <h1 className="text-3xl font-bold text-foreground">Trading Analytics</h1>
             <p className="text-muted-foreground mt-1">Detailed analysis of your trading performance</p>
+            </div>
           </div>
-        </div>
 
         {/* Time Period Filter */}
         <div className="mb-6">
-          <Select value={timePeriod} onValueChange={setTimePeriod}>
-            <SelectTrigger className="w-[180px]">
+            <Select value={timePeriod} onValueChange={setTimePeriod}>
+              <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select time period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 Days</SelectItem>
-              <SelectItem value="30d">Last 30 Days</SelectItem>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Last 7 Days</SelectItem>
+                <SelectItem value="30d">Last 30 Days</SelectItem>
               <SelectItem value="90d">Last 90 Days</SelectItem>
-              <SelectItem value="1y">Last Year</SelectItem>
-            </SelectContent>
-          </Select>
+                <SelectItem value="1y">Last Year</SelectItem>
+              </SelectContent>
+            </Select>
         </div>
 
         {/* Quick Stats */}
@@ -261,31 +261,31 @@ export default function TradingJournalAnalytics() {
             </CardHeader>
             <CardContent>
               {analytics.plCurveData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={analytics.plCurveData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="date" 
-                      tickFormatter={formatDate}
-                      fontSize={12}
-                    />
-                    <YAxis 
-                      tickFormatter={(value) => formatCurrency(value)}
-                      fontSize={12}
-                    />
-                    <Tooltip 
-                      formatter={(value) => [formatCurrency(Number(value)), 'Cumulative P&L']}
-                      labelFormatter={(label) => formatDate(label)}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="cumulativePnL" 
-                      stroke="#10b981" 
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={formatDate}
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => formatCurrency(value)}
+                    fontSize={12}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [formatCurrency(Number(value)), 'Cumulative P&L']}
+                    labelFormatter={(label) => formatDate(label)}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="cumulativePnL" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                   No closed trades to show P&L curve
@@ -372,26 +372,26 @@ export default function TradingJournalAnalytics() {
             </CardHeader>
             <CardContent>
               {analytics.riskDistributionData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
                       data={analytics.riskDistributionData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
                       {analytics.riskDistributionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value, name) => [`${value} trades`, name]} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value, name) => [`${value} trades`, name]} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">
                   No trades to show risk distribution
