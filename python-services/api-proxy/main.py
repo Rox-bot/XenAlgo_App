@@ -98,13 +98,13 @@ TRADING_EDUCATION_TOPICS = [
     "Drawdown Management: Surviving Losing Streaks",
     
     # Options Trading
-    "Options Basics: Calls and Puts Explained",
+    "Options Basics: Calls, Puts, and Strike Prices",
+    "Implied Volatility: The Options Trader's Friend",
     "Options Strategies: Covered Calls and Protective Puts",
-    "Options Greeks: Delta, Gamma, Theta, Vega",
-    "Iron Condor Strategy: Income from Sideways Markets",
-    "Butterfly Spread: Limited Risk, High Reward",
-    "Straddle and Strangle: Volatility Trading"
-]
+    "Iron Condors: Profiting from Sideways Markets",
+    "Butterfly Spreads: Limited Risk, High Reward",
+    "Options Greeks: Delta, Gamma, Theta, Vega"
+]  # Updated: 34 comprehensive trading education topics
 
 # HTTP client for making requests
 async def make_request(url: str, headers: Dict[str, str] = None, params: Dict[str, str] = None):
