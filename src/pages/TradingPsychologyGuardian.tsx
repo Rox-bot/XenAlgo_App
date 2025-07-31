@@ -21,10 +21,14 @@ import {
   BarChart3,
   Lightbulb,
   Shield,
-  Zap
+  Zap,
+  Database,
+  History,
+  TrendingUp as TrendingUpIcon
 } from 'lucide-react';
 import { tradingPsychologyApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Trade {
   id: string;
@@ -39,6 +43,7 @@ interface Trade {
   emotion_before?: string;
   emotion_after?: string;
   reasoning?: string;
+  timestamp: number;
 }
 
 interface BehavioralAnalysis {
@@ -50,13 +55,30 @@ interface BehavioralAnalysis {
   recommendations: string[];
   risk_level: 'LOW' | 'MEDIUM' | 'HIGH';
   confidence_score: number;
+  learning_progress?: number;
+  total_trades_analyzed?: number;
+  improvement_areas?: string[];
+}
+
+interface LearningProfile {
+  userId: string;
+  totalTrades: number;
+  firstAnalysisDate: string;
+  lastAnalysisDate: string;
+  learningProgress: number;
+  behavioralPatterns: string[];
+  improvementHistory: string[];
+  riskScoreHistory: number[];
+  confidenceScoreHistory: number[];
 }
 
 const TradingPsychologyGuardian = () => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<BehavioralAnalysis | null>(null);
   const [apiHealth, setApiHealth] = useState<boolean | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [learningProfile, setLearningProfile] = useState<LearningProfile | null>(null);
   const [userProfile, setUserProfile] = useState({
     risk_tolerance: 5,
     trading_experience: 'INTERMEDIATE',
@@ -68,7 +90,8 @@ const TradingPsychologyGuardian = () => {
   // Check API health on component mount
   useEffect(() => {
     checkApiHealth();
-  }, []);
+    loadLearningProfile();
+  }, [user]);
 
   const checkApiHealth = async () => {
     try {
@@ -86,6 +109,59 @@ const TradingPsychologyGuardian = () => {
     }
   };
 
+  const loadLearningProfile = async () => {
+    if (!user) return;
+    
+    try {
+      // Load from localStorage for now (in production, this would be from database)
+      const stored = localStorage.getItem(`learning_profile_${user.id}`);
+      if (stored) {
+        setLearningProfile(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Failed to load learning profile:', error);
+    }
+  };
+
+  const saveLearningProfile = async (newAnalysis: BehavioralAnalysis) => {
+    if (!user) return;
+    
+    try {
+      const currentProfile = learningProfile || {
+        userId: user.id,
+        totalTrades: 0,
+        firstAnalysisDate: new Date().toISOString(),
+        lastAnalysisDate: new Date().toISOString(),
+        learningProgress: 0,
+        behavioralPatterns: [],
+        improvementHistory: [],
+        riskScoreHistory: [],
+        confidenceScoreHistory: []
+      };
+
+      const updatedProfile: LearningProfile = {
+        ...currentProfile,
+        totalTrades: currentProfile.totalTrades + trades.length,
+        lastAnalysisDate: new Date().toISOString(),
+        learningProgress: Math.min(100, currentProfile.learningProgress + 10),
+        behavioralPatterns: [...new Set([...currentProfile.behavioralPatterns, ...newAnalysis.behavioral_patterns])],
+        improvementHistory: [...currentProfile.improvementHistory, ...newAnalysis.recommendations],
+        riskScoreHistory: [...currentProfile.riskScoreHistory, newAnalysis.risk_score],
+        confidenceScoreHistory: [...currentProfile.confidenceScoreHistory, newAnalysis.confidence_score]
+      };
+
+      setLearningProfile(updatedProfile);
+      localStorage.setItem(`learning_profile_${user.id}`, JSON.stringify(updatedProfile));
+      
+      toast({
+        title: "Learning Profile Updated",
+        description: `Your trading psychology profile has been updated with ${trades.length} new trades`,
+      });
+    } catch (error) {
+      console.error('Failed to save learning profile:', error);
+    }
+  };
+
   const addTrade = () => {
     const newTrade: Trade = {
       id: Date.now().toString(),
@@ -95,7 +171,8 @@ const TradingPsychologyGuardian = () => {
       entry_price: 0,
       entry_date: new Date().toISOString().split('T')[0],
       emotion_before: '',
-      reasoning: ''
+      reasoning: '',
+      timestamp: Date.now()
     };
     setTrades([...trades, newTrade]);
   };
@@ -123,20 +200,30 @@ const TradingPsychologyGuardian = () => {
     setIsLoading(true);
     try {
       const data = {
-        user_id: 'user-123',
+        user_id: user?.id || 'anonymous',
         trades: trades,
         risk_tolerance: userProfile.risk_tolerance,
         trading_experience: userProfile.trading_experience,
         capital_amount: userProfile.capital_amount,
-        goals: userProfile.goals
+        goals: userProfile.goals,
+        learning_mode: true, // Enable learning mode
+        previous_analysis: learningProfile ? {
+          total_trades: learningProfile.totalTrades,
+          behavioral_patterns: learningProfile.behavioralPatterns,
+          risk_score_history: learningProfile.riskScoreHistory,
+          confidence_score_history: learningProfile.confidenceScoreHistory
+        } : null
       };
 
       const result = await tradingPsychologyApi.analyzeBehavior(data);
       setAnalysis(result);
       
+      // Save to learning profile
+      await saveLearningProfile(result);
+      
       toast({
         title: "Analysis Complete",
-        description: "Trading psychology analysis has been completed",
+        description: "Trading psychology analysis has been completed and your learning profile updated",
       });
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -163,19 +250,20 @@ const TradingPsychologyGuardian = () => {
     setIsLoading(true);
     try {
       const data = {
-        user_id: 'user-123',
+        user_id: user?.id || 'anonymous',
         trades: trades,
         risk_tolerance: userProfile.risk_tolerance,
         trading_experience: userProfile.trading_experience,
         capital_amount: userProfile.capital_amount,
-        goals: userProfile.goals
+        goals: userProfile.goals,
+        learning_profile: learningProfile // Include learning history
       };
 
       const result = await tradingPsychologyApi.predictBehavior(data);
       
       toast({
         title: "Prediction Complete",
-        description: "Future behavior prediction has been completed",
+        description: "Future behavior prediction has been completed using your learning history",
       });
     } catch (error) {
       console.error('Prediction failed:', error);
@@ -198,6 +286,12 @@ const TradingPsychologyGuardian = () => {
     }
   };
 
+  const getLearningProgressColor = (progress: number) => {
+    if (progress >= 80) return 'text-green-600';
+    if (progress >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6">
@@ -208,7 +302,7 @@ const TradingPsychologyGuardian = () => {
             <h1 className="text-3xl font-bold">Trading Psychology Guardian</h1>
           </div>
           <p className="text-muted-foreground">
-            AI-powered analysis of your trading psychology and behavioral patterns
+            AI-powered analysis of your trading psychology with persistent learning
           </p>
         </div>
 
@@ -232,6 +326,7 @@ const TradingPsychologyGuardian = () => {
             <TabsTrigger value="trades">Trade History</TabsTrigger>
             <TabsTrigger value="profile">User Profile</TabsTrigger>
             <TabsTrigger value="analysis">Analysis</TabsTrigger>
+            <TabsTrigger value="learning">Learning Profile</TabsTrigger>
             <TabsTrigger value="insights">Insights</TabsTrigger>
           </TabsList>
 
@@ -544,6 +639,114 @@ const TradingPsychologyGuardian = () => {
             </Card>
           </TabsContent>
 
+          {/* Learning Profile Tab */}
+          <TabsContent value="learning" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Learning Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {learningProfile ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Total Trades Analyzed</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">{learningProfile.totalTrades}</div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Learning Progress</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className={`text-2xl font-bold ${getLearningProgressColor(learningProfile.learningProgress)}`}>
+                            {learningProfile.learningProgress}%
+                          </div>
+                          <Progress value={learningProfile.learningProgress} className="mt-2" />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Analysis History</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-sm text-muted-foreground">
+                            First: {new Date(learningProfile.firstAnalysisDate).toLocaleDateString()}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Last: {new Date(learningProfile.lastAnalysisDate).toLocaleDateString()}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <History className="h-5 w-5" />
+                          Risk Score History
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-32 flex items-end gap-1">
+                          {learningProfile.riskScoreHistory.slice(-10).map((score, index) => (
+                            <div
+                              key={index}
+                              className="bg-primary rounded-t"
+                              style={{
+                                height: `${(score / 10) * 100}%`,
+                                width: '20px'
+                              }}
+                              title={`Analysis ${index + 1}: ${score.toFixed(1)}`}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-2">
+                          Last 10 analyses
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <TrendingUpIcon className="h-5 w-5" />
+                          Behavioral Patterns Learned
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {learningProfile.behavioralPatterns.map((pattern, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <Brain className="h-4 w-4 text-primary" />
+                              <span>{pattern}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Learning Profile Yet</h3>
+                    <p className="text-muted-foreground">
+                      Start analyzing your trades to build your learning profile
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Insights Tab */}
           <TabsContent value="insights" className="space-y-4">
             <Card>
@@ -558,8 +761,8 @@ const TradingPsychologyGuardian = () => {
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      This feature will provide detailed insights into your trading psychology
-                      and behavioral patterns based on your trade history.
+                      This feature provides detailed insights into your trading psychology
+                      and behavioral patterns based on your learning history.
                     </AlertDescription>
                   </Alert>
                   

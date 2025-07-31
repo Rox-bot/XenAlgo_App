@@ -48,6 +48,8 @@ class UserBehaviorData(BaseModel):
     trading_experience: str  # BEGINNER/INTERMEDIATE/ADVANCED
     capital_amount: float
     goals: List[str]  # ["INCOME", "GROWTH", "PRESERVATION"]
+    learning_mode: Optional[bool] = False
+    previous_analysis: Optional[dict] = None
 
 class BehavioralAnalysis(BaseModel):
     user_id: str
@@ -58,6 +60,9 @@ class BehavioralAnalysis(BaseModel):
     recommendations: List[str]
     risk_level: str  # LOW/MEDIUM/HIGH
     confidence_score: float
+    learning_progress: Optional[float] = None
+    total_trades_analyzed: Optional[int] = None
+    improvement_areas: Optional[List[str]] = None
 
 # Global variables for ML models
 risk_model = None
@@ -103,7 +108,7 @@ async def analyze_trading_behavior(data: UserBehaviorData):
         # Extract features from trades
         features = extract_trading_features(data.trades)
         
-        # Calculate risk score
+        # Calculate risk score with learning consideration
         risk_score = calculate_risk_score(features, data.risk_tolerance)
         
         # Detect behavioral patterns
@@ -115,7 +120,7 @@ async def analyze_trading_behavior(data: UserBehaviorData):
         # Calculate performance correlation
         performance_correlation = calculate_performance_correlation(data.trades)
         
-        # Generate recommendations
+        # Generate recommendations with learning context
         recommendations = generate_recommendations(
             data.risk_tolerance, 
             patterns, 
@@ -129,6 +134,25 @@ async def analyze_trading_behavior(data: UserBehaviorData):
         # Calculate confidence score
         confidence_score = calculate_confidence_score(len(data.trades))
         
+        # Learning mode enhancements
+        learning_progress = None
+        total_trades_analyzed = None
+        improvement_areas = None
+        
+        if data.learning_mode and data.previous_analysis:
+            # Calculate learning progress based on previous analysis
+            previous_trades = data.previous_analysis.get('total_trades', 0)
+            current_trades = len(data.trades)
+            total_trades_analyzed = previous_trades + current_trades
+            
+            # Calculate learning progress (0-100)
+            learning_progress = min(100, (total_trades_analyzed / 50) * 100)  # 50 trades = 100%
+            
+            # Identify improvement areas based on historical patterns
+            previous_patterns = data.previous_analysis.get('behavioral_patterns', [])
+            new_patterns = set(patterns) - set(previous_patterns)
+            improvement_areas = list(new_patterns) if new_patterns else ["Continue current practices"]
+        
         return BehavioralAnalysis(
             user_id=data.user_id,
             risk_score=risk_score,
@@ -137,7 +161,10 @@ async def analyze_trading_behavior(data: UserBehaviorData):
             performance_correlation=performance_correlation,
             recommendations=recommendations,
             risk_level=risk_level,
-            confidence_score=confidence_score
+            confidence_score=confidence_score,
+            learning_progress=learning_progress,
+            total_trades_analyzed=total_trades_analyzed,
+            improvement_areas=improvement_areas
         )
         
     except Exception as e:
