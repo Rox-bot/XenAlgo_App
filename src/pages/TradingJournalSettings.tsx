@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { useTrades } from "@/hooks/useTrades";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import Navbar from "@/components/layout/Navbar";
 
 export default function TradingJournalSettings() {
   const { user } = useAuth();
@@ -44,6 +45,43 @@ export default function TradingJournalSettings() {
     }
   }, [settings]);
 
+  // Enhanced currency formatting with error handling
+  const formatCurrency = (amount: string): string => {
+    try {
+      const num = parseFloat(amount) || 0;
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: formSettings.currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(num);
+    } catch (error) {
+      console.error('Error formatting currency:', error);
+      return 'Invalid Amount';
+    }
+  };
+
+  // Memoized risk calculation for better performance
+  const riskCalculation = useMemo(() => {
+    try {
+      const accountCapital = parseFloat(formSettings.accountCapital) || 0;
+      const riskPercentage = parseFloat(formSettings.defaultRiskPercentage) || 0;
+      const riskAmount = (accountCapital * riskPercentage) / 100;
+      return {
+        accountCapital,
+        riskPercentage,
+        riskAmount: formatCurrency(riskAmount.toString())
+      };
+    } catch (error) {
+      console.error('Error calculating risk:', error);
+      return {
+        accountCapital: 0,
+        riskPercentage: 0,
+        riskAmount: '₹0'
+      };
+    }
+  }, [formSettings.accountCapital, formSettings.defaultRiskPercentage, formSettings.currency]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -51,11 +89,25 @@ export default function TradingJournalSettings() {
       return;
     }
 
+    // Enhanced form validation
     try {
+      const accountCapital = parseFloat(formSettings.accountCapital);
+      const riskPercentage = parseFloat(formSettings.defaultRiskPercentage);
+
+      if (isNaN(accountCapital) || accountCapital <= 0) {
+        toast.error("Please enter a valid account capital amount");
+        return;
+      }
+
+      if (isNaN(riskPercentage) || riskPercentage < 0.1 || riskPercentage > 10) {
+        toast.error("Risk percentage must be between 0.1% and 10%");
+        return;
+      }
+
       setIsSaving(true);
       await updateSettings({
-        account_capital: parseFloat(formSettings.accountCapital),
-        default_risk_percentage: parseFloat(formSettings.defaultRiskPercentage),
+        account_capital: accountCapital,
+        default_risk_percentage: riskPercentage,
         default_currency: formSettings.currency,
       });
       toast.success("Settings saved successfully!");
@@ -110,22 +162,12 @@ export default function TradingJournalSettings() {
     }
   };
 
-  const formatCurrency = (amount: string) => {
-    const num = parseFloat(amount) || 0;
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: formSettings.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(num);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-2xl">
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Loading settings...</p>
+            <p className="text-primary">Loading settings...</p>
           </div>
         </div>
       </div>
@@ -134,18 +176,19 @@ export default function TradingJournalSettings() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Link to="/trading-journal">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-primary hover:bg-background-ultra">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Journal
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Journal Settings</h1>
-            <p className="text-muted-foreground">Configure your trading journal preferences</p>
+            <h1 className="text-3xl font-bold text-primary">Journal Settings</h1>
+            <p className="text-primary">Configure your trading journal preferences</p>
           </div>
         </div>
 
@@ -165,8 +208,10 @@ export default function TradingJournalSettings() {
                   onChange={(e) => setFormSettings({...formSettings, accountCapital: e.target.value})}
                   placeholder="100000"
                   required
+                  aria-describedby="account-capital-help"
+                  className="bg-background-pure border-border-light text-primary placeholder:text-primary focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-primary mt-1" id="account-capital-help">
                   Current value: {formatCurrency(formSettings.accountCapital)}
                 </p>
               </div>
@@ -182,23 +227,25 @@ export default function TradingJournalSettings() {
                   value={formSettings.defaultRiskPercentage}
                   onChange={(e) => setFormSettings({...formSettings, defaultRiskPercentage: e.target.value})}
                   placeholder="2.0"
+                  aria-describedby="risk-help"
+                  className="bg-background-pure border-border-light text-primary placeholder:text-primary focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Recommended: 1-3% per trade. Current: {formSettings.defaultRiskPercentage}% = {formatCurrency((parseFloat(formSettings.accountCapital) * parseFloat(formSettings.defaultRiskPercentage) / 100).toString())} per trade
+                <p className="text-sm text-primary mt-1" id="risk-help">
+                  Recommended: 1-3% per trade. Current: {formSettings.defaultRiskPercentage}% = {riskCalculation.riskAmount} per trade
                 </p>
               </div>
 
               <div>
                 <Label htmlFor="currency">Default Currency</Label>
                 <Select value={formSettings.currency} onValueChange={(value) => setFormSettings({...formSettings, currency: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background-pure border-border-light text-primary">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
-                    <SelectItem value="USD">US Dollar ($)</SelectItem>
-                    <SelectItem value="EUR">Euro (€)</SelectItem>
-                    <SelectItem value="GBP">British Pound (£)</SelectItem>
+                  <SelectContent className="bg-background-pure border border-border-light">
+                    <SelectItem value="INR" className="text-primary hover:bg-background-ultra">Indian Rupee (₹)</SelectItem>
+                    <SelectItem value="USD" className="text-primary hover:bg-background-ultra">US Dollar ($)</SelectItem>
+                    <SelectItem value="EUR" className="text-primary hover:bg-background-ultra">Euro (€)</SelectItem>
+                    <SelectItem value="GBP" className="text-primary hover:bg-background-ultra">British Pound (£)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -214,13 +261,13 @@ export default function TradingJournalSettings() {
               <div>
                 <Label htmlFor="dateFormat">Date Format</Label>
                 <Select value={formSettings.dateFormat} onValueChange={(value) => setFormSettings({...formSettings, dateFormat: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background-pure border-border-light text-primary">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DD/MM/YYYY">DD/MM/YYYY (21/07/2024)</SelectItem>
-                    <SelectItem value="MM/DD/YYYY">MM/DD/YYYY (07/21/2024)</SelectItem>
-                    <SelectItem value="YYYY-MM-DD">YYYY-MM-DD (2024-07-21)</SelectItem>
+                  <SelectContent className="bg-background-pure border border-border-light">
+                    <SelectItem value="DD/MM/YYYY" className="text-primary hover:bg-background-ultra">DD/MM/YYYY (21/07/2024)</SelectItem>
+                    <SelectItem value="MM/DD/YYYY" className="text-primary hover:bg-background-ultra">MM/DD/YYYY (07/21/2024)</SelectItem>
+                    <SelectItem value="YYYY-MM-DD" className="text-primary hover:bg-background-ultra">YYYY-MM-DD (2024-07-21)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -228,14 +275,14 @@ export default function TradingJournalSettings() {
               <div>
                 <Label htmlFor="timezone">Timezone</Label>
                 <Select value={formSettings.timezone} onValueChange={(value) => setFormSettings({...formSettings, timezone: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background-pure border-border-light text-primary">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Asia/Kolkata">Asia/Kolkata (IST)</SelectItem>
-                    <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
-                    <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
-                    <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+                  <SelectContent className="bg-background-pure border border-border-light">
+                    <SelectItem value="Asia/Kolkata" className="text-primary hover:bg-background-ultra">Asia/Kolkata (IST)</SelectItem>
+                    <SelectItem value="America/New_York" className="text-primary hover:bg-background-ultra">America/New_York (EST)</SelectItem>
+                    <SelectItem value="Europe/London" className="text-primary hover:bg-background-ultra">Europe/London (GMT)</SelectItem>
+                    <SelectItem value="Asia/Tokyo" className="text-primary hover:bg-background-ultra">Asia/Tokyo (JST)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -243,13 +290,13 @@ export default function TradingJournalSettings() {
               <div>
                 <Label htmlFor="defaultView">Default Chart View</Label>
                 <Select value={formSettings.defaultChartView} onValueChange={(value) => setFormSettings({...formSettings, defaultChartView: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background-pure border-border-light text-primary">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="trades-list">Trades List</SelectItem>
-                    <SelectItem value="analytics">Analytics Dashboard</SelectItem>
-                    <SelectItem value="calendar">Calendar View</SelectItem>
+                  <SelectContent className="bg-background-pure border border-border-light">
+                    <SelectItem value="trades-list" className="text-primary hover:bg-background-ultra">Trades List</SelectItem>
+                    <SelectItem value="analytics" className="text-primary hover:bg-background-ultra">Analytics Dashboard</SelectItem>
+                    <SelectItem value="calendar" className="text-primary hover:bg-background-ultra">Calendar View</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -263,18 +310,18 @@ export default function TradingJournalSettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" className="border-border-light text-primary hover:bg-background-ultra">
                   Export All Data
                 </Button>
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" className="border-border-light text-primary hover:bg-background-ultra">
                   Import Trades
                 </Button>
               </div>
 
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Danger Zone:</strong> The action below will permanently delete all your trade data. This cannot be undone.
+              <Alert className="border-warning bg-warning/10">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                <AlertDescription className="text-primary">
+                  <strong className="text-warning">Danger Zone:</strong> The action below will permanently delete all your trade data. This cannot be undone.
                 </AlertDescription>
               </Alert>
 
@@ -293,11 +340,11 @@ export default function TradingJournalSettings() {
           {/* Save Settings */}
           <div className="flex justify-end gap-2">
             <Link to="/trading-journal">
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" className="border-border-light text-primary hover:bg-background-ultra">
                 Cancel
               </Button>
             </Link>
-            <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isSaving}>
+            <Button type="submit" className="bg-primary text-background-soft hover:bg-primary/90" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save Settings"}
             </Button>
           </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, Crown, Zap, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { SUBSCRIPTION_TIERS } from '@/lib/subscription';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { PaymentModal } from './PaymentModal';
 
 interface UpgradeModalProps {
   open: boolean;
@@ -29,6 +30,8 @@ interface FeatureItem {
 export function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps) {
   const { subscription } = useSubscription();
   const currentTier = subscription?.tier || 'free';
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<string>('');
 
   const features: FeatureItem[] = [
     { name: 'Trading Journal', free: true, premium: true, pro: true },
@@ -50,9 +53,10 @@ export function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps)
   ];
 
   const handleUpgrade = (tierId: string) => {
-    // TODO: Implement payment integration
-    console.log('Upgrading to:', tierId);
-    onOpenChange(false);
+    if (tierId === 'free') return;
+    
+    setSelectedTier(tierId);
+    setShowPaymentModal(true);
   };
 
   const getFeatureIcon = (tier: string, hasFeature: boolean) => {
@@ -60,24 +64,24 @@ export function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps)
     
     switch (tier) {
       case 'free':
-        return <Check className="h-4 w-4 text-green-500" />;
+        return <Check className="h-4 w-4 text-success" />;
       case 'premium':
-        return <Zap className="h-4 w-4 text-blue-500" />;
+        return <Zap className="h-4 w-4 text-info" />;
       case 'pro':
-        return <Crown className="h-4 w-4 text-purple-500" />;
+        return <Crown className="h-4 w-4 text-luxury-gold" />;
       default:
-        return <Check className="h-4 w-4 text-green-500" />;
+        return <Check className="h-4 w-4 text-success" />;
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl bg-background-pure border border-border-light">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
+          <DialogTitle className="text-2xl font-bold text-center text-primary">
             {feature ? `Upgrade to access ${feature}` : 'Choose Your Plan'}
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center text-text-cool">
             Select the perfect plan for your trading needs
           </DialogDescription>
         </DialogHeader>
@@ -86,23 +90,23 @@ export function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps)
           {Object.entries(SUBSCRIPTION_TIERS).map(([tierId, tier]) => (
             <div
               key={tierId}
-              className={`relative rounded-lg border-2 p-6 ${
+              className={`relative rounded-lg border-2 p-6 bg-background-pure ${
                 currentTier === tierId
                   ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
+                  : 'border-border-light hover:border-primary/50'
               }`}
             >
               {currentTier === tierId && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-success text-background-soft">
                   Current Plan
                 </Badge>
               )}
               
               <div className="text-center mb-4">
-                <h3 className="text-xl font-semibold">{tier.name}</h3>
+                <h3 className="text-xl font-semibold text-primary">{tier.name}</h3>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold">₹{tier.price}</span>
-                  <span className="text-muted-foreground">/month</span>
+                  <span className="text-3xl font-bold text-primary">₹{tier.price}</span>
+                  <span className="text-text-cool">/month</span>
                 </div>
               </div>
 
@@ -112,7 +116,7 @@ export function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps)
                   return (
                     <div key={featureItem.name} className="flex items-center gap-2">
                       {getFeatureIcon(tierId, hasFeature)}
-                      <span className={`text-sm ${hasFeature ? '' : 'text-muted-foreground line-through'}`}>
+                      <span className={`text-sm ${hasFeature ? 'text-primary' : 'text-text-cool line-through'}`}>
                         {featureItem.name}
                       </span>
                     </div>
@@ -133,14 +137,21 @@ export function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps)
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="border-border-light text-primary hover:bg-background-ultra">
             Maybe Later
           </Button>
-          <div className="text-sm text-muted-foreground text-center sm:text-left">
+          <div className="text-sm text-text-cool text-center sm:text-left">
             All plans include a 7-day free trial. Cancel anytime.
           </div>
         </DialogFooter>
       </DialogContent>
+      
+      {/* Payment Modal */}
+      <PaymentModal
+        open={showPaymentModal}
+        onOpenChange={setShowPaymentModal}
+        selectedTier={selectedTier}
+      />
     </Dialog>
   );
 } 

@@ -13,9 +13,12 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import Home from "./pages/Home";
 import Calculators from "./pages/Calculators";
 import Indicators from "./pages/Indicators";
+import IndicatorStore from "./pages/IndicatorStore";
+import IndicatorDetail from "./pages/IndicatorDetail";
 import Screeners from "./pages/Screeners";
-import Blogs from "./pages/Blogs";
+
 import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
 import Dashboard from "./pages/Dashboard";
 import BacktestScanners from "./pages/BacktestScanners";
 import Login from "./pages/Login";
@@ -38,9 +41,12 @@ import TradingJournalTradeDetail from "./pages/TradingJournalTradeDetail";
 import OptionSimulator from "./pages/OptionSimulator";
 import OptionStrategyRecommender from "./pages/OptionStrategyRecommender";
 import MarketInsights from "./pages/MarketInsights";
+import AIEdge from "./pages/AIEdge";
 import ChartingPlatform from "./pages/ChartingPlatform";
 import TradingPsychologyGuardian from "./pages/TradingPsychologyGuardian";
 import Auth from "./pages/Auth";
+import AdminBlogGenerator from './pages/AdminBlogGenerator';
+import DynamicSectorAnalysis from './pages/DynamicSectorAnalysis';
 
 const queryClient = new QueryClient();
 
@@ -57,23 +63,23 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <UserPreferencesProvider>
-            <SubscriptionProvider>
-              <CurrencyProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <UserPreferencesProvider>
+          <SubscriptionProvider>
+            <CurrencyProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
                     <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/blogs" element={<Blogs />} />
-                    <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route path=" /blog/:slug" element={<BlogPost />} />
                     <Route path="/calculators" element={<Calculators />} />
-                    <Route path="/indicators" element={<Indicators />} />
+                    <Route path="/indicators" element={<IndicatorStore />} />
+                    <Route path="/indicators/:id" element={<IndicatorDetail />} />
                     <Route path="/screeners" element={<Screeners />} />
                     <Route path="/courses" element={<Courses />} />
+                    <Route path="/course/:courseId" element={<CourseDetail />} />
                     <Route path="/backtest-scanners" element={<BacktestScanners />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
@@ -125,10 +131,21 @@ const App = () => {
                       </ProtectedRoute>
                     } />
                     <Route path="/market-insights" element={<MarketInsights />} />
+                    <Route path="/ai-edge" element={<AIEdge />} />
                     <Route path="/charting" element={<ChartingPlatform />} />
                     <Route path="/trading-psychology" element={
                       <ProtectedRoute>
                         <TradingPsychologyGuardian />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/blog-generator" element={
+                      <ProtectedRoute>
+                        <AdminBlogGenerator />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/sector-analysis" element={
+                      <ProtectedRoute>
+                        <DynamicSectorAnalysis />
                       </ProtectedRoute>
                     } />
                     
@@ -141,7 +158,6 @@ const App = () => {
           </SubscriptionProvider>
         </UserPreferencesProvider>
       </QueryClientProvider>
-        </AuthProvider>
     </ErrorBoundary>
   );
 };

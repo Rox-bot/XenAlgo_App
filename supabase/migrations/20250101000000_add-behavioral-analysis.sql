@@ -27,12 +27,16 @@ CREATE POLICY "Users can view their own behavioral analysis" ON public.behaviora
 CREATE POLICY "Users can insert their own behavioral analysis" ON public.behavioral_analysis
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+-- Profiles table will be created in a later migration
+
 -- Add columns to profiles table for trading psychology
 ALTER TABLE public.profiles 
 ADD COLUMN IF NOT EXISTS risk_tolerance INTEGER DEFAULT 5,
 ADD COLUMN IF NOT EXISTS trading_experience VARCHAR(20) DEFAULT 'BEGINNER' CHECK (trading_experience IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED')),
 ADD COLUMN IF NOT EXISTS capital_amount DECIMAL(15,2) DEFAULT 100000,
 ADD COLUMN IF NOT EXISTS trading_goals JSONB DEFAULT '["GROWTH"]';
+
+-- Trades table will be created in a later migration
 
 -- Add columns to trades table for emotions
 ALTER TABLE public.trades 

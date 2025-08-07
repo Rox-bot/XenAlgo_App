@@ -4,6 +4,11 @@
 // API Proxy Service URL (update this to your deployed proxy URL)
 const API_PROXY_URL = import.meta.env.VITE_API_PROXY_URL || 'http://localhost:8001';
 
+// Debug logging
+console.log('🔧 Environment Variables Debug:');
+console.log('VITE_API_PROXY_URL:', import.meta.env.VITE_API_PROXY_URL);
+console.log('Using API_PROXY_URL:', API_PROXY_URL);
+
 export const API_CONFIG = {
   // API Proxy Service
   PROXY_SERVICE: {
@@ -12,21 +17,21 @@ export const API_CONFIG = {
     endpoints: {
       health: '/health',
       apiStatus: '/api-status',
-      yahooFinance: '/yahoo-finance/quote',
       alphaVantage: '/alpha-vantage/technical',
       news: '/news/stock',
       reddit: '/reddit/trending',
       openai: '/openai/generate-blog',
       trendingStocks: '/trending-stocks',
+      dhanhq: {
+        quote: '/dhanhq/quote',
+        search: '/dhanhq/search',
+        trending: '/dhanhq/trending',
+        sectorAnalysis: '/dhanhq/sectors/analysis'
+      }
     }
   },
   
-  // Direct API fallbacks (for development)
-  YAHOO_FINANCE: {
-    enabled: true,
-    baseUrl: 'https://query2.finance.yahoo.com',
-    rateLimit: 100, // requests per minute
-  },
+
   
   // Alpha Vantage API (free tier: 5 requests per minute)
   ALPHA_VANTAGE: {
@@ -80,7 +85,6 @@ export const SETUP_INSTRUCTIONS = `
 VITE_API_PROXY_URL=https://your-proxy-service.railway.app
 
 3. For the proxy service, add these environment variables:
-YAHOO_FINANCE_API_KEY=your_key_here
 ALPHA_VANTAGE_API_KEY=your_key_here
 NEWS_API_KEY=your_key_here
 OPENAI_API_KEY=your_key_here
@@ -101,7 +105,7 @@ export const checkAPIConfiguration = async () => {
     
     return {
       proxyService: API_CONFIG.PROXY_SERVICE.enabled,
-      yahooFinance: proxyStatus.yahoo_finance || API_CONFIG.YAHOO_FINANCE.enabled,
+      dhanhq: proxyStatus.dhanhq || true,
       alphaVantage: proxyStatus.alpha_vantage || API_CONFIG.ALPHA_VANTAGE.enabled,
       newsAPI: proxyStatus.news_api || API_CONFIG.NEWS_API.enabled,
       openAI: proxyStatus.openai || API_CONFIG.OPENAI.enabled,
@@ -112,7 +116,7 @@ export const checkAPIConfiguration = async () => {
     console.error('Failed to check proxy service status:', error);
     return {
       proxyService: false,
-      yahooFinance: API_CONFIG.YAHOO_FINANCE.enabled,
+      dhanhq: true,
       alphaVantage: API_CONFIG.ALPHA_VANTAGE.enabled,
       newsAPI: API_CONFIG.NEWS_API.enabled,
       openAI: API_CONFIG.OPENAI.enabled,
@@ -129,7 +133,7 @@ export const getAPIStatus = async () => {
   // Log current API status
   console.log('🔧 Current API Status:');
   console.log('🌐 Proxy Service:', config.proxyService ? '✅ Connected' : '❌ Not Available');
-  console.log('📊 Real Data (Yahoo):', config.yahooFinance ? '✅ Connected' : '❌ Not Available');
+  console.log('📊 Indian Market Data (DhanHQ):', config.dhanhq ? '✅ Connected' : '❌ Not Available');
   console.log('📈 Technical Indicators (Alpha Vantage):', config.alphaVantage ? '✅ Connected' : '❌ API Key Needed');
   console.log('📰 News API:', config.newsAPI ? '✅ Connected' : '❌ API Key Needed');
   console.log('🤖 OpenAI (Blog Generation):', config.openAI ? '✅ Connected' : '❌ API Key Needed');

@@ -50,13 +50,13 @@ class ErrorBoundary extends Component<Props, State> {
               <CardTitle className="text-xl">Something went wrong</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-center">
+              <p className="text-text-cool text-center">
                 We encountered an unexpected error. Please try refreshing the page or contact support if the problem persists.
               </p>
               
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="text-sm">
-                  <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  <summary className="cursor-pointer text-text-cool hover:text-primary">
                     Error Details (Development)
                   </summary>
                   <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto">

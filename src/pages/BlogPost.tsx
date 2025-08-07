@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Clock, Share2, BookOpen } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
 const BlogPost = () => {
   const { slug } = useParams();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Blog post data - in a real app, this would come from an API
   const blogPosts = {
@@ -98,65 +101,96 @@ const BlogPost = () => {
         <h3>Strategies for Volatile Markets</h3>
         <p>Successful trading in volatile markets requires adapted strategies:</p>
         
-        <ol>
-          <li><strong>Diversification:</strong> Spread risk across different asset classes and sectors</li>
-          <li><strong>Position Sizing:</strong> Use smaller position sizes to manage risk</li>
-          <li><strong>Stop Losses:</strong> Implement tight stop-loss orders to limit downside</li>
-          <li><strong>Volatility Indicators:</strong> Use VIX and other volatility measures to gauge market fear</li>
-        </ol>
+        <ul>
+          <li><strong>Position Sizing:</strong> Reduce position sizes to manage increased risk</li>
+          <li><strong>Stop Losses:</strong> Use tighter stop losses to limit potential losses</li>
+          <li><strong>Diversification:</strong> Spread risk across multiple asset classes</li>
+          <li><strong>Patience:</strong> Wait for clear setups rather than forcing trades</li>
+        </ul>
         
         <h3>Conclusion</h3>
-        <p>While volatility can be challenging, it also presents opportunities for skilled traders. The key is to remain disciplined, manage risk effectively, and adapt your strategies to changing market conditions.</p>
-      `
-    },
-    "risk-management-day-trading": {
-      title: "Risk Management Strategies for Day Traders",
-      excerpt: "Learn essential risk management techniques that can protect your capital and improve your trading performance.",
-      author: "Sarthak Mathur",
-      date: "Dec 10, 2024",
-      category: "Trading",
-      readTime: "10 min read",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop",
-      content: `
-        <h2>Risk Management: The Foundation of Successful Day Trading</h2>
-        <p>Risk management is arguably the most important aspect of day trading. Without proper risk management, even the most profitable strategies can lead to significant losses. This comprehensive guide will teach you the essential techniques to protect your capital and improve your trading performance.</p>
-        
-        <h3>The 1% Rule</h3>
-        <p>Never risk more than 1% of your trading capital on a single trade. This rule helps ensure that even a series of losses won't significantly impact your overall account balance.</p>
-        
-        <h3>Position Sizing</h3>
-        <p>Calculate your position size based on your risk tolerance and stop-loss level. Use the formula: Position Size = (Account Balance × Risk %) / (Entry Price - Stop Loss Price)</p>
-        
-        <h3>Stop-Loss Orders</h3>
-        <p>Always use stop-loss orders to limit your downside risk. Set your stop-loss before entering a trade, not after you're already in a losing position.</p>
-        
-        <h3>Risk-Reward Ratio</h3>
-        <p>Aim for a minimum risk-reward ratio of 1:2. This means for every dollar you risk, you should aim to make at least two dollars in profit.</p>
-        
-        <h3>Diversification</h3>
-        <p>Don't put all your eggs in one basket. Spread your trades across different stocks, sectors, and strategies to reduce overall portfolio risk.</p>
-        
-        <h3>Emotional Control</h3>
-        <p>Develop the discipline to stick to your risk management rules, even when emotions are running high. Fear and greed are the enemies of successful trading.</p>
-        
-        <h3>Conclusion</h3>
-        <p>Remember, the goal of day trading is not to be right all the time, but to be profitable over the long term. Proper risk management is what separates successful traders from those who blow up their accounts.</p>
+        <p>While volatility can be challenging, it also presents opportunities for skilled traders. The key is to adapt your strategies and maintain discipline in your approach.</p>
       `
     }
   };
 
-  const post = blogPosts[slug as keyof typeof blogPosts];
+  // Memoized blog post data
+  const currentPost = blogPosts[slug as keyof typeof blogPosts];
 
-  if (!post) {
+  // Memoized share handler
+  const handleShare = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate share operation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: currentPost?.title || 'Blog Post',
+          url: window.location.href,
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link Copied",
+          description: "Blog post link copied to clipboard!",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing blog post:', error);
+      toast({
+        title: "Share Error",
+        description: "Failed to share blog post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPost, toast]);
+
+  // Memoized back to blogs handler
+  const handleBackToBlogs = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate navigation delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      toast({
+        title: "Navigating",
+        description: "Taking you back to all blogs...",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error navigating back:', error);
+      toast({
+        title: "Navigation Error",
+        description: "Failed to navigate back to blogs.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  if (!currentPost) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background-soft">
         <Navbar />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-4xl font-bold mb-4">Blog Post Not Found</h1>
-          <p className="text-muted-foreground mb-8">The blog post you're looking for doesn't exist.</p>
-          <Button asChild>
-            <Link to="/blogs">← Back to Blogs</Link>
-          </Button>
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-primary mb-4">Blog Post Not Found</h1>
+            <p className="text-primary mb-8">The blog post you're looking for doesn't exist.</p>
+            <Link to="/market-insights">
+              <Button className="bg-primary text-background-soft hover:bg-primary-light">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Blogs
+              </Button>
+            </Link>
+          </div>
         </div>
         <Footer />
       </div>
@@ -164,114 +198,144 @@ const BlogPost = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-soft">
       <Navbar />
       
-      {/* Back Button */}
-      <div className="container mx-auto px-4 py-8">
-        <Button variant="ghost" asChild>
-          <Link to="/blogs">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Blogs
-          </Link>
-        </Button>
-      </div>
-
-      {/* Hero Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
+      <article className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <header className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Link to="/market-insights">
+              <Button 
+                variant="outline" 
+                className="bg-background-pure border-primary text-primary hover:bg-background-ultra"
+                onClick={handleBackToBlogs}
+                disabled={isLoading}
+                aria-label="Back to all blogs"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Blogs
+              </Button>
+            </Link>
+          </div>
+          
           <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <Badge variant="secondary" className="mb-4">
-                {post.category}
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                {post.title}
-              </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                {post.excerpt}
-              </p>
-              
-              {/* Author and Meta Info */}
-              <div className="flex items-center gap-6 text-sm text-muted-foreground mb-8">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="font-medium text-foreground">{post.author}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{post.date}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  <span>{post.readTime}</span>
-                </div>
+            <Badge variant="outline" className="bg-background-pure border-primary text-primary mb-4">
+              {currentPost.category}
+            </Badge>
+            
+            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6">
+              {currentPost.title}
+            </h1>
+            
+            <p className="text-xl text-primary mb-8">
+              {currentPost.excerpt}
+            </p>
+            
+            <div className="flex items-center gap-6 text-sm text-primary mb-8">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span>{currentPost.author}</span>
               </div>
-              
-              {/* Share Button */}
-              <div className="flex items-center gap-4 mb-8">
-                <Button variant="outline" size="sm">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share Article
-                </Button>
-                <Button variant="outline" size="sm">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Save for Later
-                </Button>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>{currentPost.date}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>{currentPost.readTime}</span>
               </div>
             </div>
             
-            {/* Featured Image */}
-            <div className="mb-12">
-              <img 
-                src={post.image} 
-                alt={post.title}
-                className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-              />
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={handleShare}
+                disabled={isLoading}
+                variant="outline"
+                className="bg-background-pure border-primary text-primary hover:bg-background-ultra"
+                aria-label="Share this blog post"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Sharing...
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </>
+                )}
+              </Button>
             </div>
           </div>
-        </div>
-      </section>
+        </header>
 
-      {/* Article Content */}
-      <section className="py-8">
+        {/* Featured Image */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <img
+            src={currentPost.image}
+            alt={currentPost.title}
+            className="w-full h-64 md:h-96 object-cover rounded-lg"
+            loading="lazy"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="max-w-4xl mx-auto">
+          <div 
+            className="prose prose-lg max-w-none prose-headings:text-primary prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-p:text-primary prose-p:leading-relaxed prose-ul:text-primary prose-ol:text-primary prose-li:my-1"
+            dangerouslySetInnerHTML={{ __html: currentPost.content }}
+          />
+        </div>
+      </article>
+
+      {/* Related Posts */}
+      <section className="py-16 bg-background-ultra">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <Card>
-              <CardContent className="p-8">
-                <div 
-                  className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-h2:text-2xl prose-h3:text-xl prose-h4:text-lg prose-p:text-muted-foreground prose-p:leading-relaxed prose-ul:text-muted-foreground prose-ol:text-muted-foreground prose-li:my-1"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
+          <h2 className="text-3xl font-bold text-primary mb-8 text-center">Related Articles</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="bg-background-pure border border-border-light hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  <Badge variant="outline" className="bg-background-pure border-primary text-primary">
+                    Technical Analysis
+                  </Badge>
+                </div>
+                <h3 className="text-xl font-semibold text-primary mb-2">
+                  Advanced Chart Patterns
+                </h3>
+                <p className="text-sm text-primary mb-4">Learn about complex chart patterns that can give you an edge in trading.</p>
+                <Link to="/blog/advanced-chart-patterns">
+                  <Button variant="outline" className="bg-background-pure border-primary text-primary hover:bg-background-ultra">
+                    Read More
+                    <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Related Articles */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-8 text-center">Related Articles</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <Badge variant="outline" className="mb-3">Technical Analysis</Badge>
-                  <h3 className="font-semibold mb-2">Advanced Chart Patterns</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Learn about complex chart patterns that can give you an edge in trading.</p>
-                  <Button variant="outline" size="sm">Read More</Button>
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <Badge variant="outline" className="mb-3">Trading Psychology</Badge>
-                  <h3 className="font-semibold mb-2">Overcoming Fear and Greed</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Master your emotions and become a more disciplined trader.</p>
-                  <Button variant="outline" size="sm">Read More</Button>
-                </CardContent>
-              </Card>
-            </div>
+            
+            <Card className="bg-background-pure border border-border-light hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  <Badge variant="outline" className="bg-background-pure border-primary text-primary">
+                    Psychology
+                  </Badge>
+                </div>
+                <h3 className="text-xl font-semibold text-primary mb-2">
+                  Trading Psychology Mastery
+                </h3>
+                <p className="text-sm text-primary mb-4">Master your emotions and become a more disciplined trader.</p>
+                <Link to="/blog/trading-psychology">
+                  <Button variant="outline" className="bg-background-pure border-primary text-primary hover:bg-background-ultra">
+                    Read More
+                    <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>

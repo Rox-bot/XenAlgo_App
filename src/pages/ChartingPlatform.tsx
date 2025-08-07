@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Search, 
   TrendingUp, 
@@ -33,31 +34,37 @@ import {
   Triangle
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import Navbar from '@/components/layout/Navbar';
 
-// Mock data for demonstration
+// Enhanced stock data generation with error handling
 const generateStockData = (symbol: string, days: number = 100) => {
-  const data = [];
-  let price = 100 + Math.random() * 50;
-  const volatility = 0.02;
-  
-  for (let i = 0; i < days; i++) {
-    const change = (Math.random() - 0.5) * volatility * price;
-    price += change;
-    const volume = Math.floor(Math.random() * 1000000) + 100000;
+  try {
+    const data = [];
+    let price = 100 + Math.random() * 50;
+    const volatility = 0.02;
     
-    data.push({
-      date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      open: price - Math.random() * 2,
-      high: price + Math.random() * 3,
-      low: price - Math.random() * 3,
-      close: price,
-      volume: volume,
-      change: change,
-      changePercent: (change / (price - change)) * 100
-    });
+    for (let i = 0; i < days; i++) {
+      const change = (Math.random() - 0.5) * volatility * price;
+      price += change;
+      const volume = Math.floor(Math.random() * 1000000) + 100000;
+      
+      data.push({
+        date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        open: price - Math.random() * 2,
+        high: price + Math.random() * 3,
+        low: price - Math.random() * 3,
+        close: price,
+        volume: volume,
+        change: change,
+        changePercent: (change / (price - change)) * 100
+      });
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error generating stock data:', error);
+    return [];
   }
-  
-  return data;
 };
 
 const popularStocks = [
@@ -90,154 +97,326 @@ const indicators = [
   { name: 'ADX', description: 'Average Directional Index' }
 ];
 
+const drawingTools = [
+  { name: 'Trend Line', icon: TrendingUp, description: 'Draw trend lines' },
+  { name: 'Fibonacci', icon: BarChart3, description: 'Fibonacci retracements' },
+  { name: 'Rectangle', icon: Square, description: 'Draw rectangles' },
+  { name: 'Ellipse', icon: Circle, description: 'Draw ellipses' },
+  { name: 'Triangle', icon: Triangle, description: 'Draw triangles' },
+  { name: 'Text', icon: Type, description: 'Add text annotations' }
+];
+
 const ChartingPlatform = () => {
+  const { toast } = useToast();
   const [selectedStock, setSelectedStock] = useState('RELIANCE');
   const [timeframe, setTimeframe] = useState('1d');
   const [chartData, setChartData] = useState<any[]>([]);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showIndicators, setShowIndicators] = useState(false);
   const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
-  const [drawingTool, setDrawingTool] = useState<string | null>(null);
+  const [selectedDrawingTool, setSelectedDrawingTool] = useState<string>('');
+  const [isChartLoading, setIsChartLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Generate chart data when stock or timeframe changes
-  useEffect(() => {
-    const data = generateStockData(selectedStock, 100);
-    setChartData(data);
-  }, [selectedStock, timeframe]);
-
+  // Memoized current stock data
   const currentStock = useMemo(() => {
-    return popularStocks.find(stock => stock.symbol === selectedStock) || popularStocks[0];
+    try {
+      return popularStocks.find(stock => stock.symbol === selectedStock) || popularStocks[0];
+    } catch (error) {
+      console.error('Error finding current stock:', error);
+      return popularStocks[0];
+    }
   }, [selectedStock]);
 
+  // Memoized filtered stocks
   const filteredStocks = useMemo(() => {
-    return popularStocks.filter(stock => 
-      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stock.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    try {
+      if (!searchQuery) return popularStocks;
+      return popularStocks.filter(stock => 
+        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        stock.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } catch (error) {
+      console.error('Error filtering stocks:', error);
+      return popularStocks;
+    }
   }, [searchQuery]);
 
-  const handleIndicatorToggle = (indicator: string) => {
-    setActiveIndicators(prev => 
-      prev.includes(indicator) 
-        ? prev.filter(i => i !== indicator)
-        : [...prev, indicator]
-    );
-  };
+  // Memoized chart data generator
+  const generateChartData = useCallback(async (symbol: string, tf: string) => {
+    try {
+      setIsChartLoading(true);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const data = generateStockData(symbol, 100);
+      setChartData(data);
+      
+      toast({
+        title: "Chart Updated",
+        description: `Chart data loaded for ${symbol}`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error generating chart data:', error);
+      toast({
+        title: "Chart Error",
+        description: "Failed to load chart data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChartLoading(false);
+    }
+  }, [toast]);
 
-  const handleDrawingToolSelect = (tool: string) => {
-    setDrawingTool(drawingTool === tool ? null : tool);
-  };
+  // Memoized indicator toggle handler
+  const handleIndicatorToggle = useCallback((indicator: string) => {
+    try {
+      setActiveIndicators(prev => {
+        if (prev.includes(indicator)) {
+          return prev.filter(i => i !== indicator);
+        } else {
+          return [...prev, indicator];
+        }
+      });
+      
+      toast({
+        title: "Indicator Updated",
+        description: `${indicator} ${activeIndicators.includes(indicator) ? 'removed' : 'added'}`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error toggling indicator:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update indicator.",
+        variant: "destructive",
+      });
+    }
+  }, [activeIndicators, toast]);
+
+  // Memoized drawing tool selector
+  const handleDrawingToolSelect = useCallback((tool: string) => {
+    try {
+      setSelectedDrawingTool(prev => prev === tool ? '' : tool);
+      
+      if (tool) {
+        toast({
+          title: "Drawing Tool Selected",
+          description: `${tool} tool activated`,
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error('Error selecting drawing tool:', error);
+      toast({
+        title: "Error",
+        description: "Failed to select drawing tool.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  // Memoized stock selector
+  const handleStockSelect = useCallback(async (symbol: string) => {
+    try {
+      setSelectedStock(symbol);
+      await generateChartData(symbol, timeframe);
+    } catch (error) {
+      console.error('Error selecting stock:', error);
+      toast({
+        title: "Error",
+        description: "Failed to select stock.",
+        variant: "destructive",
+      });
+    }
+  }, [generateChartData, timeframe, toast]);
+
+  // Memoized timeframe changer
+  const handleTimeframeChange = useCallback(async (value: string) => {
+    try {
+      setTimeframe(value);
+      await generateChartData(selectedStock, value);
+    } catch (error) {
+      console.error('Error changing timeframe:', error);
+      toast({
+        title: "Error",
+        description: "Failed to change timeframe.",
+        variant: "destructive",
+      });
+    }
+  }, [generateChartData, selectedStock, toast]);
+
+  // Memoized fullscreen toggle
+  const handleFullscreenToggle = useCallback(() => {
+    try {
+      setIsFullscreen(prev => !prev);
+      toast({
+        title: "View Updated",
+        description: `Chart ${isFullscreen ? 'minimized' : 'maximized'}`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error toggling fullscreen:', error);
+      toast({
+        title: "Error",
+        description: "Failed to toggle view.",
+        variant: "destructive",
+      });
+    }
+  }, [isFullscreen, toast]);
+
+  // Load initial chart data
+  useEffect(() => {
+    generateChartData(selectedStock, timeframe);
+  }, [generateChartData, selectedStock, timeframe]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold">Charting Platform</h1>
-              <p className="text-muted-foreground">Advanced technical analysis with interactive charts</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Bookmark className="h-4 w-4 mr-2" />
-                Save Chart
-              </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setIsFullscreen(!isFullscreen)}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Stock Search and Info */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Search Stock</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search stocks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Timeframe</Label>
-              <Select value={timeframe} onValueChange={setTimeframe}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeframes.map(tf => (
-                    <SelectItem key={tf.value} value={tf.value}>
-                      {tf.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Current Stock</Label>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <div className="font-semibold">{currentStock.symbol}</div>
-                  <div className="text-sm text-muted-foreground">{currentStock.name}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-semibold">₹{currentStock.price.toLocaleString()}</div>
-                  <div className={`text-sm ${currentStock.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {currentStock.change >= 0 ? '+' : ''}{currentStock.change.toFixed(2)} ({currentStock.changePercent.toFixed(2)}%)
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+    <div className="min-h-screen bg-background-soft">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-6">
-          {/* Stock List */}
-          <div className="lg:col-span-1">
-            <Card>
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Stock Search */}
+            <Card className="bg-background-pure border border-border-light">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Watchlist
-                </CardTitle>
+                <CardTitle className="text-primary">Stock Search</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary" />
+                  <Input
+                    placeholder="Search stocks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-background-pure border-border-light text-primary placeholder:text-primary focus:border-primary"
+                    aria-label="Search stocks"
+                  />
+                </div>
+                
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {filteredStocks.map((stock) => (
+                    <div
+                      key={stock.symbol}
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedStock === stock.symbol
+                          ? 'bg-primary/10 border border-primary'
+                          : 'bg-background-ultra border border-border-light hover:bg-background-pure'
+                      }`}
+                      onClick={() => handleStockSelect(stock.symbol)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Select ${stock.name} stock`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleStockSelect(stock.symbol);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-primary">{stock.symbol}</div>
+                          <div className="text-sm text-primary">{stock.name}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-primary">₹{stock.price.toFixed(2)}</div>
+                          <div className={`text-sm ${stock.change >= 0 ? 'text-success' : 'text-error'}`}>
+                            {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Timeframe Selector */}
+            <Card className="bg-background-pure border border-border-light">
+              <CardHeader>
+                <CardTitle className="text-primary">Timeframe</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={timeframe} onValueChange={handleTimeframeChange}>
+                  <SelectTrigger className="bg-background-pure border-border-light text-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background-pure border border-border-light">
+                    {timeframes.map((tf) => (
+                      <SelectItem key={tf.value} value={tf.value} className="text-primary hover:bg-background-ultra">
+                        {tf.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
+            {/* Indicators */}
+            <Card className="bg-background-pure border border-border-light">
+              <CardHeader>
+                <CardTitle className="text-primary">Indicators</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {filteredStocks.map(stock => (
+                {indicators.map((indicator) => (
                   <div
-                    key={stock.symbol}
-                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                      selectedStock === stock.symbol 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-border hover:border-primary/50'
+                    key={indicator.name}
+                    className={`p-2 rounded cursor-pointer transition-colors ${
+                      activeIndicators.includes(indicator.name)
+                        ? 'bg-primary/10 border border-primary'
+                        : 'bg-background-ultra border border-border-light hover:bg-background-pure'
                     }`}
-                    onClick={() => setSelectedStock(stock.symbol)}
+                    onClick={() => handleIndicatorToggle(indicator.name)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Toggle ${indicator.name} indicator`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleIndicatorToggle(indicator.name);
+                      }
+                    }}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-primary">{indicator.name}</div>
+                    <div className="text-xs text-primary">{indicator.description}</div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Drawing Tools */}
+            <Card className="bg-background-pure border border-border-light">
+              <CardHeader>
+                <CardTitle className="text-primary">Drawing Tools</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {drawingTools.map((tool) => (
+                  <div
+                    key={tool.name}
+                    className={`p-2 rounded cursor-pointer transition-colors ${
+                      selectedDrawingTool === tool.name
+                        ? 'bg-primary/10 border border-primary'
+                        : 'bg-background-ultra border border-border-light hover:bg-background-pure'
+                    }`}
+                    onClick={() => handleDrawingToolSelect(tool.name)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Select ${tool.name} drawing tool`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleDrawingToolSelect(tool.name);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <tool.icon className="w-4 h-4 text-primary" />
                       <div>
-                        <div className="font-semibold">{stock.symbol}</div>
-                        <div className="text-sm text-muted-foreground">{stock.name}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">₹{stock.price.toLocaleString()}</div>
-                        <div className={`text-sm ${stock.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}
-                        </div>
+                        <div className="text-sm font-medium text-primary">{tool.name}</div>
+                        <div className="text-xs text-primary">{tool.description}</div>
                       </div>
                     </div>
                   </div>
@@ -246,262 +425,93 @@ const ChartingPlatform = () => {
             </Card>
           </div>
 
-          {/* Main Chart */}
+          {/* Main Chart Area */}
           <div className="lg:col-span-3">
-            <Card>
+            <Card className="bg-background-pure border border-border-light">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    {currentStock.symbol} - {currentStock.name}
-                    <Badge variant="outline">{timeframe.toUpperCase()}</Badge>
-                  </CardTitle>
-                  
-                  <div className="flex items-center gap-2">
-                    {/* Drawing Tools */}
-                    <div className="flex items-center gap-1 border rounded-lg p-1">
-                      <Button
-                        variant={drawingTool === 'trendline' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => handleDrawingToolSelect('trendline')}
-                      >
-                        <TrendingUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={drawingTool === 'horizontal' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => handleDrawingToolSelect('horizontal')}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={drawingTool === 'fibonacci' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => handleDrawingToolSelect('fibonacci')}
-                      >
-                        <Triangle className="h-4 w-4" />
-                      </Button>
+                  <div>
+                    <CardTitle className="text-primary">{currentStock.name}</CardTitle>
+                    <div className="flex items-center gap-4 text-sm text-primary">
+                      <span>₹{currentStock.price.toFixed(2)}</span>
+                      <span className={`${currentStock.change >= 0 ? 'text-success' : 'text-error'}`}>
+                        {currentStock.change >= 0 ? '+' : ''}{currentStock.change.toFixed(2)} ({currentStock.changePercent.toFixed(2)}%)
+                      </span>
                     </div>
-
-                    {/* Chart Controls */}
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleFullscreenToggle}
+                      className="bg-background-pure border-primary text-primary hover:bg-background-ultra"
+                      aria-label="Toggle fullscreen view"
+                    >
+                      <Maximize2 className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-background-pure border-primary text-primary hover:bg-background-ultra"
+                      aria-label="Download chart"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-background-pure border-primary text-primary hover:bg-background-ultra"
+                      aria-label="Share chart"
+                    >
+                      <Share2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="h-96">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="date" 
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                      />
-                      <YAxis 
-                        domain={['dataMin - 5', 'dataMax + 5']}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <Tooltip 
-                        content={({ active, payload, label }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="bg-background border rounded-lg p-3 shadow-lg">
-                                <div className="font-semibold">{label}</div>
-                                <div className="space-y-1 text-sm">
-                                  <div>Open: ₹{data.open?.toFixed(2)}</div>
-                                  <div>High: ₹{data.high?.toFixed(2)}</div>
-                                  <div>Low: ₹{data.low?.toFixed(2)}</div>
-                                  <div>Close: ₹{data.close?.toFixed(2)}</div>
-                                  <div>Volume: {data.volume?.toLocaleString()}</div>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="close"
-                        stroke="#8884d8"
-                        fill="#8884d8"
-                        fillOpacity={0.1}
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                {isChartLoading ? (
+                  <div className="h-96 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="text-primary">Loading chart data...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-96">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="#6B7280"
+                          fontSize={12}
+                        />
+                        <YAxis 
+                          stroke="#6B7280"
+                          fontSize={12}
+                        />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: '#1F2937',
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                            color: '#F9FAFB'
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="close"
+                          stroke="#3B82F6"
+                          fill="#3B82F6"
+                          fillOpacity={0.1}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* Technical Analysis Tools */}
-        <div className="mt-6">
-          <Tabs defaultValue="indicators" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="indicators">Technical Indicators</TabsTrigger>
-              <TabsTrigger value="patterns">Chart Patterns</TabsTrigger>
-              <TabsTrigger value="screener">Stock Screener</TabsTrigger>
-              <TabsTrigger value="alerts">Alerts</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="indicators" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Technical Indicators</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {indicators.map(indicator => (
-                      <div
-                        key={indicator.name}
-                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                          activeIndicators.includes(indicator.name)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/50'
-                        }`}
-                        onClick={() => handleIndicatorToggle(indicator.name)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-semibold">{indicator.name}</div>
-                            <div className="text-sm text-muted-foreground">{indicator.description}</div>
-                          </div>
-                          <div className={`w-4 h-4 rounded border ${
-                            activeIndicators.includes(indicator.name)
-                              ? 'bg-primary border-primary'
-                              : 'border-border'
-                          }`}>
-                            {activeIndicators.includes(indicator.name) && (
-                              <div className="w-full h-full bg-primary rounded" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="patterns" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Chart Patterns</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[
-                      'Double Top', 'Double Bottom', 'Head and Shoulders', 
-                      'Inverse Head and Shoulders', 'Triangle', 'Flag', 
-                      'Pennant', 'Cup and Handle', 'Wedge'
-                    ].map(pattern => (
-                      <div key={pattern} className="p-4 border rounded-lg">
-                        <div className="font-semibold">{pattern}</div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          Pattern detection and analysis
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="screener" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Stock Screener</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Price Range</Label>
-                      <div className="flex gap-2">
-                        <Input placeholder="Min" />
-                        <Input placeholder="Max" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Market Cap</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select market cap" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="large">Large Cap (&gt;20,000 Cr)</SelectItem>
-                          <SelectItem value="mid">Mid Cap (5,000-20,000 Cr)</SelectItem>
-                          <SelectItem value="small">Small Cap (&lt;5,000 Cr)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Technical Criteria</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select criteria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="rsi-oversold">RSI Oversold</SelectItem>
-                          <SelectItem value="rsi-overbought">RSI Overbought</SelectItem>
-                          <SelectItem value="macd-bullish">MACD Bullish</SelectItem>
-                          <SelectItem value="macd-bearish">MACD Bearish</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <Button className="mt-4">Run Screener</Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="alerts" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Price Alerts</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <Input placeholder="Stock Symbol" className="w-32" />
-                      <Select>
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Condition" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="above">Above</SelectItem>
-                          <SelectItem value="below">Below</SelectItem>
-                          <SelectItem value="crosses">Crosses</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input placeholder="Price" className="w-24" />
-                      <Button size="sm">Add Alert</Button>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium">Active Alerts</div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <div className="font-semibold">RELIANCE</div>
-                            <div className="text-sm text-muted-foreground">Above ₹2,500</div>
-                          </div>
-                          <Button variant="outline" size="sm">Remove</Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
     </div>

@@ -171,7 +171,7 @@ const RiskPage = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-muted-foreground">Recommended Coverage</span>
+                    <span className="text-sm font-medium text-text-cool">Recommended Coverage</span>
                   </div>
                   <p className="text-2xl font-bold text-primary">{formatCurrency(results.recommendedCoverage)}</p>
                 </CardContent>
@@ -181,7 +181,7 @@ const RiskPage = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-medium text-muted-foreground">Coverage Gap</span>
+                    <span className="text-sm font-medium text-text-cool">Coverage Gap</span>
                   </div>
                   <p className="text-2xl font-bold text-red-500">{formatCurrency(results.coverageGap)}</p>
                 </CardContent>
@@ -191,7 +191,7 @@ const RiskPage = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Target className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm font-medium text-muted-foreground">Monthly Premium</span>
+                    <span className="text-sm font-medium text-text-cool">Monthly Premium</span>
                   </div>
                   <p className="text-2xl font-bold text-blue-500">{formatCurrency(results.monthlyPremium)}</p>
                 </CardContent>

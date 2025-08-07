@@ -1,489 +1,421 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowRight, 
-  Brain, 
-  BarChart3, 
-  Zap, 
-  DollarSign, 
-  CheckCircle, 
-  Star, 
-  Shield, 
-  Clock, 
-  Users,
-  TrendingUp,
-  Target,
-  Calculator,
-  BookOpen,
-  AlertTriangle,
-  LineChart,
-  Settings,
-  Smartphone,
-  Globe,
-  Award,
-  Play,
-  Sparkles,
-  ArrowUpRight,
-  BarChart,
-  PieChart,
-  Activity
-} from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Brain, 
+  Zap, 
+  Sparkles, 
+  Crown, 
+  Target, 
+  TrendingUp, 
+  BarChart3, 
+  Users, 
+  Award, 
+  CheckCircle, 
+  ArrowRight, 
+  Play, 
+  Shield, 
+  Rocket, 
+  Star,
+  Clock, 
+  Lock,
+  Unlock,
+  DollarSign,
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin
+} from 'lucide-react';
 
 const Home = () => {
-  const heroFeatures = [
-    { icon: Brain, text: "AI-Powered Strategy Recommender" },
-    { icon: BarChart3, text: "Advanced Trading Analytics" },
-    { icon: Calculator, text: "Financial Calculators Suite" },
-    { icon: Target, text: "Option Strategy Simulator" }
-  ];
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const platformFeatures = [
+  // Product Screenshots Carousel Data
+  const productScreenshots = [
     {
-      category: "Trading Tools",
-      features: [
-        {
-          icon: TrendingUp,
-          title: "Trading Journal",
-          description: "Track trades, analyze performance, and optimize strategies with detailed analytics",
-          link: "/trading-journal",
-          badge: "Popular",
-          gradient: "from-blue-500 to-cyan-500"
-        },
-    {
-      icon: Brain,
-          title: "AI Strategy Recommender",
-          description: "Get intelligent option strategy recommendations based on market conditions",
-          link: "/option-recommender",
-          badge: "New",
-          gradient: "from-purple-500 to-pink-500"
-        },
-        {
-          icon: Target,
-          title: "Option Simulator",
-          description: "Build and test option strategies with real-time P&L visualization",
-          link: "/option-simulator",
-          badge: "Advanced",
-          gradient: "from-green-500 to-emerald-500"
+      id: 1,
+      title: "AI Momentum Scanner",
+      description: "Real-time momentum detection with 94% accuracy",
+      image: "/images/ai-momentum-scanner.png",
+      features: ["Live market scanning", "AI confidence scoring", "Multi-timeframe analysis"]
     },
     {
-      icon: BarChart3,
-          title: "Trading Analytics",
-          description: "Comprehensive performance analysis with charts and insights",
-          link: "/trading-journal/analytics",
-          gradient: "from-orange-500 to-red-500"
-        }
-      ]
+      id: 2,
+      title: "Volume Profile Master",
+      description: "Professional volume analysis with support/resistance levels",
+      image: "/images/volume-profile-master.png",
+      features: ["Volume visualization", "Key level identification", "Breakout alerts"]
     },
     {
-      category: "Financial Tools",
-      features: [
-        {
-          icon: Calculator,
-          title: "Financial Calculators",
-          description: "EMI, SIP, Retirement, Tax, and more financial planning tools",
-          link: "/calculators",
-          gradient: "from-indigo-500 to-purple-500"
-        },
-        {
-          icon: AlertTriangle,
-          title: "Market Screeners",
-          description: "Find stocks based on technical indicators and fundamental data",
-          link: "/screeners",
-          gradient: "from-yellow-500 to-orange-500"
-        },
-        {
-          icon: LineChart,
-          title: "Technical Indicators",
-          description: "Advanced charting with 50+ technical indicators",
-          link: "/indicators",
-          gradient: "from-teal-500 to-cyan-500"
-        },
-        {
-          icon: BookOpen,
-          title: "Educational Courses",
-          description: "Learn trading strategies and market analysis",
-          link: "/courses",
-          gradient: "from-pink-500 to-rose-500"
-        }
-      ]
+      id: 3,
+      title: "Neural Network Predictor",
+      description: "Advanced AI predictions with confidence scoring",
+      image: "/images/neural-network-predictor.png",
+      features: ["Neural network analysis", "Price predictions", "Risk assessment"]
     }
   ];
 
-  const pricingPlans = [
-    {
-      name: "Free",
-      price: "₹0",
-      period: "/month",
-      features: [
-        "15 monthly trades",
-        "Basic calculators",
-        "Limited indicators",
-        "Community support"
-      ],
-      popular: false,
-      cta: "Get Started Free",
-      gradient: "from-gray-400 to-gray-600"
-    },
-    {
-      name: "Premium",
-      price: "₹1,999",
-      period: "/month",
-      features: [
-        "100 monthly trades",
-        "All calculators",
-        "Advanced indicators",
-        "AI strategy recommender",
-        "Option simulator",
-        "Priority support"
-      ],
-      popular: true,
-      cta: "Start Premium Trial",
-      gradient: "from-blue-500 to-purple-600"
-    },
-    {
-      name: "Pro",
-      price: "₹4,999",
-      period: "/month",
-      features: [
-        "Unlimited trades",
-        "All features",
-        "Custom strategies",
-        "API access",
-        "Dedicated support",
-        "Advanced analytics"
-      ],
-      popular: false,
-      cta: "Go Pro",
-      gradient: "from-purple-500 to-pink-600"
-    }
-  ];
-
+  // Testimonials Data
   const testimonials = [
     {
-      name: "Rahul Sharma",
-      role: "Software Engineer, Accenture",
-      content: "The AI strategy recommender is game-changing! It helped me identify the perfect option strategies for different market conditions.",
+      id: 1,
+      name: "Rajesh Kumar",
+      role: "Day Trader",
+      company: "Mumbai",
       rating: 5,
-      avatar: "RS"
+      content: "XenAlgo's AI indicators have completely transformed my trading. The accuracy is incredible!",
+      trades: 150,
+      profit: "2.5L",
+      verified: true
     },
     {
-      name: "Sameera Bhatnagar",
-      role: "Product Manager, Make My Trip",
-      content: "The trading journal with real-time analytics has completely transformed my trading approach. The P&L tracking is incredibly accurate.",
+      id: 2,
+      name: "Priya Sharma",
+      role: "Swing Trader",
+      company: "Delhi",
       rating: 5,
-      avatar: "SB"
+      content: "The volume profile indicator helped me identify key levels I was missing. Game changer!",
+      trades: 89,
+      profit: "1.8L",
+      verified: true
     },
     {
-      name: "Aman Patel",
-      role: "Financial Analyst, Eclerx",
-      content: "The option simulator is brilliant! I can test complex strategies before deploying them. The Greeks calculation is spot-on.",
+      id: 3,
+      name: "Amit Patel",
+      role: "Options Trader",
+      company: "Bangalore",
       rating: 5,
-      avatar: "AP"
-    },
-    {
-      name: "Kiara Mishra",
-      role: "Manager, Infosys",
-      content: "The freemium model is perfect for beginners. I started with the free plan and upgraded as I learned more.",
-      rating: 5,
-      avatar: "KM"
+      content: "Neural network predictions are spot on. My win rate improved from 60% to 85%!",
+      trades: 234,
+      profit: "4.2L",
+      verified: true
     }
   ];
 
-  const stats = [
-    { number: "50,000+", label: "Active Traders", icon: Users },
-    { number: "₹2.5Cr+", label: "Trading Volume", icon: DollarSign },
-    { number: "95%", label: "Success Rate", icon: Award },
-    { number: "24/7", label: "Support Available", icon: Clock }
-  ];
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % productScreenshots.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + productScreenshots.length) % productScreenshots.length);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-soft">
       <Navbar />
-      
+
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary via-primary/90 to-secondary text-primary-foreground py-32 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20" />
-        
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-accent/20 rounded-full blur-xl animate-pulse" />
-        <div className="absolute top-40 right-20 w-32 h-32 bg-accent/10 rounded-full blur-2xl animate-pulse delay-1000" />
-        <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-accent/30 rounded-full blur-lg animate-pulse delay-500" />
-        
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-deep/10 via-primary/5 to-luxury-gold/5"></div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <Sparkles className="h-6 w-6 text-accent" />
-              <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/30">
-                AI-Powered Trading Platform
-              </Badge>
-            </div>
-            
-            <h1 className="text-6xl lg:text-7xl font-bold leading-tight mb-8">
-              Master the Markets with{" "}
-              <span className="bg-gradient-to-r from-accent to-accent/80 bg-clip-text text-transparent">
-                XenAlgo
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-primary-deep via-primary to-luxury-gold bg-clip-text text-transparent">
+                AI-Powered Trading
               </span>
-              </h1>
+              <br />
+              <span className="text-primary">That Actually Works</span>
+            </h1>
             
-            <p className="text-xl lg:text-2xl opacity-90 mb-12 max-w-3xl mx-auto leading-relaxed">
-              AI-powered trading tools, advanced analytics, and intelligent strategy recommendations for modern traders.
+            <p className="text-xl lg:text-2xl text-primary leading-relaxed mb-12 max-w-3xl mx-auto">
+              Experience institutional-grade indicators powered by artificial intelligence. 
+              Join 15,000+ traders who trust XenAlgo for 94% accuracy.
             </p>
-            
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              {heroFeatures.map((feature, index) => (
-                <div key={index} className="flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-4 py-2 border border-primary-foreground/20">
-                  <feature.icon className="h-4 w-4 text-accent" />
-                  <span className="text-sm font-medium">{feature.text}</span>
+
+            {/* Credibility Metrics */}
+            <div className="grid grid-cols-3 gap-8 mb-12">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary">15,000+</div>
+                <div className="text-sm text-primary">Active Traders</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-success">94%</div>
+                <div className="text-sm text-primary">Accuracy Rate</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-luxury-gold">₹25Cr+</div>
+                <div className="text-sm text-primary">Total Profits</div>
                 </div>
-              ))}
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/auth">
-                <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                  Start Trading Free
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
+              <Button asChild size="lg" className="bg-luxury-gold text-primary-deep hover:bg-luxury-goldHover border-0 shadow-glow hover:shadow-glow-strong text-lg px-8 py-4">
+                <Link to="/register">
+                  <Rocket className="w-6 h-6 mr-3" />
+                  Start Free Trial
+                  <ArrowRight className="w-6 h-6 ml-3" />
                 </Link>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 text-lg px-8 py-6 rounded-full backdrop-blur-sm"
-                  onClick={() => {
-                    const pricingSection = document.getElementById('pricing-section');
-                    pricingSection?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                >
-                <Play className="mr-2 h-5 w-5" />
-                Watch Demo
-                </Button>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="bg-background-pure border-primary text-primary hover:bg-background-ultra text-lg px-8 py-4">
+                <Link to="/courses">
+                  <Play className="w-6 h-6 mr-3" />
+                  Watch Demo
+                </Link>
+              </Button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="flex items-center justify-center gap-6 pt-8">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-success" />
+                <span className="text-sm text-primary">30-Day Money Back</span>
+                  </div>
+              <div className="flex items-center gap-2">
+                <Lock className="w-5 h-5 text-primary" />
+                <span className="text-sm text-primary">Bank-Level Security</span>
+                </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-luxury-gold" />
+                <span className="text-sm text-primary">Instant Access</span>
               </div>
             </div>
-                  </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary/10 to-primary/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <stat.icon className="h-8 w-8 text-primary" />
-                </div>
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.number}</div>
-                <div className="text-muted-foreground font-medium">{stat.label}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* Platform Features */}
-      <section className="py-24">
+      {/* Product Features Section */}
+      <section className="py-20 bg-background-pure">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              Everything You Need to Trade Successfully
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl font-bold">
+              <span className="bg-gradient-to-r from-primary-deep to-luxury-gold bg-clip-text text-transparent">
+                AI-Powered Indicators That Actually Work
+              </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Professional-grade tools for modern traders
+            <p className="text-xl text-primary max-w-3xl mx-auto">
+              Stop guessing. Start winning with indicators that learn from market patterns and adapt to changing conditions.
             </p>
           </div>
           
-          <Tabs defaultValue="trading" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-12 bg-muted/50 p-1 rounded-xl">
-              <TabsTrigger value="trading" className="rounded-lg">Trading Tools</TabsTrigger>
-              <TabsTrigger value="financial" className="rounded-lg">Financial Tools</TabsTrigger>
-            </TabsList>
-            
-            {platformFeatures.map((category) => (
-              <TabsContent key={category.category} value={category.category.toLowerCase().replace(' ', '')}>
-                <div className="grid md:grid-cols-2 gap-8">
-                  {category.features.map((feature, index) => (
-                    <Card key={index} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-background to-muted/50 overflow-hidden">
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
-                      <CardHeader className="relative">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg`}>
-                              <feature.icon className="h-7 w-7 text-white" />
+          <div className="grid md:grid-cols-3 gap-8 mb-20">
+            {[
+              {
+                title: "AI Momentum Scanner",
+                description: "Detect momentum shifts before they happen with 94% accuracy",
+                image: "/images/ai-momentum-scanner.png",
+                accuracy: 94,
+                users: 1247,
+                price: "₹999/month"
+              },
+              {
+                title: "Volume Profile Master",
+                description: "Identify key support/resistance levels with institutional precision",
+                image: "/images/volume-profile-master.png",
+                accuracy: 89,
+                users: 892,
+                price: "₹799/month"
+              },
+              {
+                title: "Neural Network Predictor",
+                description: "Predict market movements with advanced AI algorithms",
+                image: "/images/neural-network-predictor.png",
+                accuracy: 91,
+                users: 567,
+                price: "₹1299/month"
+              }
+            ].map((indicator, index) => (
+              <Card key={index} className="bg-background-pure border border-border-light shadow-medium hover:shadow-large transition-all duration-300">
+                <CardHeader className="pb-4">
+                  <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-luxury-gold/20 rounded-lg flex items-center justify-center mb-4">
+                    <div className="text-4xl">📊</div>
                   </div>
-                            <div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                              {feature.badge && (
-                                <Badge variant="secondary" className="mt-2 bg-gradient-to-r from-accent/20 to-accent/10 text-accent border-accent/30">
-                                  {feature.badge}
-                                </Badge>
-                              )}
+                  <CardTitle className="text-xl font-bold text-primary">{indicator.title}</CardTitle>
+                  <p className="text-text-cool">{indicator.description}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-success" />
+                        <span className="text-sm font-medium text-text-cool">{indicator.accuracy}% Accuracy</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-text-cool">{indicator.users.toLocaleString()} users</span>
                             </div>
                           </div>
-                          <Link to={feature.link}>
-                            <Button variant="ghost" size="sm" className="group-hover:bg-accent/10 group-hover:text-accent transition-colors">
-                              <ArrowUpRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-primary">{indicator.price}</span>
+                      <Button asChild size="sm" className="bg-luxury-gold text-primary-deep hover:bg-luxury-goldHover border-0">
+                        <Link to="/indicators">
+                          Try Now
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Link>
+                      </Button>
+                    </div>
                         </div>
-                </CardHeader>
-                      <CardContent className="relative">
-                        <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
-              </TabsContent>
-            ))}
-          </Tabs>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-24 bg-gradient-to-b from-background to-muted/30">
+      {/* Social Proof Section */}
+      <section className="py-20 bg-background-soft">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              How XenAlgo Works
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl font-bold">
+              <span className="bg-gradient-to-r from-primary-deep to-luxury-gold bg-clip-text text-transparent">
+                Real Traders, Real Results
+              </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Three simple steps to trading success
+            <p className="text-xl text-primary max-w-3xl mx-auto">
+              Join thousands of successful traders who have transformed their trading with XenAlgo indicators
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-12">
-            {[
-              {
-                step: "1",
-                title: "Analyze Market Conditions",
-                description: "Input your market outlook, risk tolerance, and capital. Our AI analyzes current conditions.",
-                icon: BarChart,
-                gradient: "from-blue-500 to-cyan-500"
-              },
-              {
-                step: "2",
-                title: "Get AI Recommendations",
-                description: "Receive intelligent strategy recommendations optimized for your profile and market conditions.",
-                icon: Brain,
-                gradient: "from-purple-500 to-pink-500"
-              },
-              {
-                step: "3",
-                title: "Execute & Track",
-                description: "Execute trades with confidence and track performance with detailed analytics and insights.",
-                icon: Activity,
-                gradient: "from-green-500 to-emerald-500"
-              }
-            ].map((item, index) => (
-              <div key={index} className="text-center group">
-                <div className="relative mb-8">
-                  <div className={`w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <item.icon className="h-10 w-10 text-white" />
+          <div className="grid md:grid-cols-3 gap-8 mb-20">
+            {testimonials.map((testimonial) => (
+                          <Card key={testimonial.id} className="bg-background-pure border border-border-light shadow-medium">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-luxury-gold rounded-full flex items-center justify-center">
+                    <span className="text-background-soft font-bold">{testimonial.name.charAt(0)}</span>
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {item.step}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-primary">{testimonial.name}</h3>
+                      {testimonial.verified && (
+                        <Badge className="bg-success text-background-soft text-xs">
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-primary mb-3">{testimonial.role} • {testimonial.company}</p>
+                    <div className="flex items-center gap-1 mb-3">
+                      {Array.from({ length: testimonial.rating }).map((_, i) => (
+                        <Star key={i} className="w-4 h-4 text-yellow-500 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-primary mb-3">"{testimonial.content}"</p>
+                    <div className="flex items-center gap-4 text-xs text-primary">
+                      <span>{testimonial.trades} trades</span>
+                      <span>₹{testimonial.profit} profit</span>
+                    </div>
                   </div>
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">{item.title}</h3>
-                <p className="text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                  {item.description}
-                </p>
-              </div>
+              </CardContent>
+            </Card>
             ))}
           </div>
+
+          {/* Success Metrics */}
+          <Card className="bg-background-pure border border-border-light shadow-large">
+            <CardContent className="p-12">
+              <div className="grid md:grid-cols-4 gap-8 text-center">
+                {[
+                  { label: "Active Users", value: "15,000+", icon: Users, color: "text-primary" },
+                  { label: "Total Profits", value: "₹25Cr+", icon: DollarSign, color: "text-luxury-gold" },
+                  { label: "Win Rate", value: "87%", icon: Target, color: "text-success" },
+                  { label: "User Rating", value: "4.9/5", icon: Star, color: "text-warning" }
+                ].map((metric, index) => (
+                  <div key={index}>
+                    <div className={`text-4xl font-bold ${metric.color} mb-2`}>
+                      {metric.value}
+                    </div>
+                    <div className="text-sm text-primary">{metric.label}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing-section" className="py-24">
+      <section className="py-20 bg-background-pure">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              Choose Your Plan
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl font-bold">
+              <span className="bg-gradient-to-r from-primary-deep to-luxury-gold bg-clip-text text-transparent">
+                Choose Your Plan
+              </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Start free, upgrade as you grow
+            <p className="text-xl text-primary max-w-3xl mx-auto">
+              Start with our free trial and upgrade when you're ready to scale
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <Card key={index} className={`relative group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 ${
-                plan.popular ? 'border-primary shadow-xl scale-105' : 'border-border'
-              }`}>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {[
+              {
+                name: "Starter",
+                price: "Free",
+                period: "7 days",
+                features: [
+                  "AI Momentum Scanner",
+                  "Basic support",
+                  "5 trades per day",
+                  "Email alerts"
+                ],
+                popular: false,
+                cta: "Start Free Trial"
+              },
+              {
+                name: "Pro",
+                price: "₹999",
+                period: "per month",
+                features: [
+                  "All Starter features",
+                  "Volume Profile Master",
+                  "Unlimited trades",
+                  "Priority support",
+                  "Advanced analytics"
+                ],
+                popular: true,
+                cta: "Get Pro Plan"
+              },
+              {
+                name: "Enterprise",
+                price: "₹2499",
+                period: "per month",
+                features: [
+                  "All Pro features",
+                  "Neural Network Predictor",
+                  "Custom indicators",
+                  "Dedicated support",
+                  "API access",
+                  "White-label options"
+                ],
+                popular: false,
+                cta: "Contact Sales"
+              }
+            ].map((plan, index) => (
+              <Card key={index} className={`relative ${plan.popular ? 'border-luxury-gold shadow-glow' : 'border-border-light'} bg-background-pure`}>
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-primary/80 text-white border-0">
-                    Most Popular
-                  </Badge>
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-luxury-gold text-primary-deep px-4 py-1">
+                      Most Popular
+                    </Badge>
+                  </div>
                 )}
-                <div className={`absolute inset-0 bg-gradient-to-br ${plan.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-lg`} />
-                <CardHeader className="text-center relative">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <div className="flex items-baseline justify-center gap-1 mt-4">
-                    <span className="text-5xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                <CardHeader className="text-center pb-4">
+                  <CardTitle className="text-2xl font-bold text-primary">{plan.name}</CardTitle>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-bold text-primary">{plan.price}</span>
+                    <span className="text-text-cool">{plan.period}</span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6 relative">
-                  <ul className="space-y-4">
+                <CardContent>
+                  <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
+                        <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+                        <span className="text-primary">{feature}</span>
                       </li>
                     ))}
                   </ul>
-                  <Button className={`w-full py-6 text-lg rounded-xl ${
-                    plan.popular 
-                      ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70' 
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}>
+                  <Button 
+                    className={`w-full ${plan.popular ? 'bg-luxury-gold text-primary-deep hover:bg-luxury-goldHover' : 'bg-primary text-background-soft hover:bg-primary-light'}`}
+                    size="lg"
+                  >
                     {plan.cta}
-                    </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 bg-gradient-to-b from-muted/30 to-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              What Our Traders Say
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of successful traders
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-gradient-to-br from-background to-muted/50">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">"{testimonial.content}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <span className="text-sm font-semibold text-primary">{testimonial.avatar}</span>
-                    </div>
-                  <div>
-                      <div className="font-semibold">{testimonial.name}</div>
-                      <div className="text-sm text-muted-foreground">{testimonial.role}</div>
-                    </div>
-                  </div>
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -492,33 +424,107 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary via-primary/90 to-secondary text-primary-foreground relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20" />
-        
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-5xl font-bold mb-6">
+      <section className="py-20 bg-gradient-to-r from-primary-deep to-primary">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold text-background-soft mb-6">
             Ready to Transform Your Trading?
           </h2>
-          <p className="text-xl opacity-90 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Join thousands of traders who are already using XenAlgo to make smarter trading decisions.
+          <p className="text-xl text-background-soft/90 mb-8 max-w-2xl mx-auto">
+            Join 15,000+ traders who have already discovered the power of AI-driven trading indicators
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
-              <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                Start Trading Free
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 text-lg px-8 py-6 rounded-full backdrop-blur-sm">
-              Schedule Demo
+            <Button asChild size="lg" className="bg-luxury-gold text-primary-deep hover:bg-luxury-goldHover text-lg px-8 py-4">
+              <Link to="/register">
+                <Rocket className="w-6 h-6 mr-3" />
+                Start Free Trial
+                <ArrowRight className="w-6 h-6 ml-3" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-background-soft text-background-soft hover:bg-background-soft/10 text-lg px-8 py-4">
+              <Link to="/courses">
+                <Play className="w-6 h-6 mr-3" />
+                Watch Demo
+              </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      <Footer />
+      {/* Footer */}
+      <footer className="bg-primary-deep text-background-soft py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-luxury-gold to-warning-DEFAULT rounded-xl flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-primary-deep" />
+                </div>
+                <span className="font-bold text-xl">XenAlgo</span>
+              </div>
+              <p className="text-background-soft/80 mb-4">
+                AI-powered trading indicators that help you make smarter investment decisions.
+              </p>
+              <div className="flex space-x-4">
+                <a href="#" className="text-background-soft/80 hover:text-luxury-gold transition-colors">
+                  <Facebook className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-background-soft/80 hover:text-luxury-gold transition-colors">
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-background-soft/80 hover:text-luxury-gold transition-colors">
+                  <Instagram className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-background-soft/80 hover:text-luxury-gold transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Product</h3>
+              <ul className="space-y-2 text-background-soft/80">
+                <li><Link to="/indicators" className="hover:text-luxury-gold transition-colors">Features</Link></li>
+                <li><Link to="/calculators" className="hover:text-luxury-gold transition-colors">Pricing</Link></li>
+                <li><Link to="/courses" className="hover:text-luxury-gold transition-colors">API</Link></li>
+                <li><Link to="/market-insights" className="hover:text-luxury-gold transition-colors">Documentation</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Company</h3>
+              <ul className="space-y-2 text-background-soft/80">
+                <li><Link to="/about" className="hover:text-luxury-gold transition-colors">About</Link></li>
+                <li><Link to="/market-insights" className="hover:text-luxury-gold transition-colors">Blog</Link></li>
+                <li><Link to="/careers" className="hover:text-luxury-gold transition-colors">Careers</Link></li>
+                <li><Link to="/contact" className="hover:text-luxury-gold transition-colors">Contact</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-background-soft/80">
+                <li><Link to="/help" className="hover:text-luxury-gold transition-colors">Help Center</Link></li>
+                <li><Link to="/community" className="hover:text-luxury-gold transition-colors">Community</Link></li>
+                <li><Link to="/status" className="hover:text-luxury-gold transition-colors">Status</Link></li>
+                <li><Link to="/security" className="hover:text-luxury-gold transition-colors">Security</Link></li>
+              </ul>
+            </div>
+          </div>
+          
+          <Separator className="my-8 bg-border-light/20" />
+          
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-background-soft/80 text-sm">
+              © 2024 XenAlgo. All rights reserved.
+            </p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <Link to="/privacy" className="text-background-soft/80 hover:text-luxury-gold transition-colors text-sm">Privacy Policy</Link>
+              <Link to="/terms" className="text-background-soft/80 hover:text-luxury-gold transition-colors text-sm">Terms of Service</Link>
+              <Link to="/cookies" className="text-background-soft/80 hover:text-luxury-gold transition-colors text-sm">Cookie Policy</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

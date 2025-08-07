@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ import {
   XCircle,
   Info
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { 
   MarketConditions, 
   StrategyRecommendation,
@@ -30,6 +31,7 @@ import {
   getVolatilityStrategies,
   getOutlookStrategies
 } from '@/lib/optionRecommender';
+import Navbar from '@/components/layout/Navbar';
 
 export default function OptionStrategyRecommender() {
   const [marketConditions, setMarketConditions] = useState<MarketConditions>({
@@ -44,55 +46,125 @@ export default function OptionStrategyRecommender() {
     resistanceLevel: 18500,
     marketSentiment: 'NEUTRAL'
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Generate recommendations based on market conditions
-  const recommendations = useMemo(() => {
-    return generateStrategyRecommendations(marketConditions);
-  }, [marketConditions]);
-
-  // Get market insights
-  const marketInsights = useMemo(() => {
-    return getMarketInsights(marketConditions);
-  }, [marketConditions]);
-
-  // Get strategy suggestions
-  const volatilityStrategies = getVolatilityStrategies(marketConditions.volatility);
-  const outlookStrategies = getOutlookStrategies(marketConditions.outlook);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const getRiskColor = (risk: 'LOW' | 'MEDIUM' | 'HIGH') => {
-    switch (risk) {
-      case 'LOW': return 'text-green-600 bg-green-100';
-      case 'MEDIUM': return 'text-yellow-600 bg-yellow-100';
-      case 'HIGH': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+  // Enhanced currency formatting with error handling
+  const formatCurrency = useCallback((amount: number): string => {
+    try {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    } catch (error) {
+      console.error('Error formatting currency:', error);
+      return 'Invalid Amount';
     }
-  };
+  }, []);
 
-  const getScoreColor = (score: number) => {
-    if (score >= 0.8) return 'text-green-600';
-    if (score >= 0.6) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  // Enhanced risk color function with custom color system
+  const getRiskColor = useCallback((risk: 'LOW' | 'MEDIUM' | 'HIGH'): string => {
+    switch (risk) {
+      case 'LOW': return 'text-success bg-success/10';
+      case 'MEDIUM': return 'text-warning bg-warning/10';
+      case 'HIGH': return 'text-error bg-error/10';
+      default: return 'text-primary bg-primary/10';
+    }
+  }, []);
+
+  // Enhanced score color function with custom color system
+  const getScoreColor = useCallback((score: number): string => {
+    if (score >= 0.8) return 'text-success';
+    if (score >= 0.6) return 'text-warning';
+    return 'text-error';
+  }, []);
+
+  // Enhanced market conditions update with error handling
+  const handleMarketConditionChange = useCallback((field: keyof MarketConditions, value: any) => {
+    try {
+      setMarketConditions(prev => ({ ...prev, [field]: value }));
+    } catch (error) {
+      console.error('Error updating market conditions:', error);
+      toast.error('Failed to update market conditions');
+    }
+  }, []);
+
+  // Enhanced numeric input handling with validation
+  const handleNumericInput = useCallback((field: keyof MarketConditions, value: string) => {
+    try {
+      const numValue = Number(value);
+      if (isNaN(numValue) || numValue < 0) {
+        toast.error('Please enter a valid positive number');
+        return;
+      }
+      setMarketConditions(prev => ({ ...prev, [field]: numValue }));
+    } catch (error) {
+      console.error('Error updating numeric input:', error);
+      toast.error('Failed to update value');
+    }
+  }, []);
+
+  // Memoized recommendations with error handling
+  const recommendations = useMemo(() => {
+    try {
+      setIsLoading(true);
+      const recs = generateStrategyRecommendations(marketConditions);
+      return recs;
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      toast.error('Failed to generate strategy recommendations');
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [marketConditions]);
+
+  // Memoized market insights with error handling
+  const marketInsights = useMemo(() => {
+    try {
+      return getMarketInsights(marketConditions);
+    } catch (error) {
+      console.error('Error getting market insights:', error);
+      toast.error('Failed to get market insights');
+      return {
+        summary: 'Unable to generate market insights at this time.',
+        recommendations: [],
+        warnings: []
+      };
+    }
+  }, [marketConditions]);
+
+  // Memoized strategy suggestions with error handling
+  const volatilityStrategies = useMemo(() => {
+    try {
+      return getVolatilityStrategies(marketConditions.volatility);
+    } catch (error) {
+      console.error('Error getting volatility strategies:', error);
+      return [];
+    }
+  }, [marketConditions.volatility]);
+
+  const outlookStrategies = useMemo(() => {
+    try {
+      return getOutlookStrategies(marketConditions.outlook);
+    } catch (error) {
+      console.error('Error getting outlook strategies:', error);
+      return [];
+    }
+  }, [marketConditions.outlook]);
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Brain className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">AI Option Strategy Recommender</h1>
+            <h1 className="text-3xl font-bold text-primary">AI Option Strategy Recommender</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-primary">
             Tell us your market outlook and risk profile, and we'll recommend the best option hedging strategies for current conditions.
           </p>
         </div>
@@ -100,9 +172,9 @@ export default function OptionStrategyRecommender() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Market Conditions Input */}
           <div className="lg:col-span-1 space-y-6">
-            <Card>
+            <Card className="bg-background-pure border border-border-light">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-primary">
                   <BarChart3 className="w-5 h-5" />
                   Market Conditions
                 </CardTitle>
@@ -110,102 +182,108 @@ export default function OptionStrategyRecommender() {
               <CardContent className="space-y-4">
                 {/* Market Outlook */}
                 <div>
-                  <Label>Market Outlook</Label>
+                  <Label className="text-primary">Market Outlook</Label>
                   <Select
                     value={marketConditions.outlook}
-                    onValueChange={(value) => setMarketConditions(prev => ({ ...prev, outlook: value as any }))}
+                    onValueChange={(value) => handleMarketConditionChange('outlook', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background-pure border-border-light text-primary">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BULLISH">🐂 Bullish</SelectItem>
-                      <SelectItem value="BEARISH">🐻 Bearish</SelectItem>
-                      <SelectItem value="NEUTRAL">➡️ Neutral</SelectItem>
+                    <SelectContent className="bg-background-pure border border-border-light">
+                      <SelectItem value="BULLISH" className="text-primary hover:bg-background-ultra">🐂 Bullish</SelectItem>
+                      <SelectItem value="BEARISH" className="text-primary hover:bg-background-ultra">🐻 Bearish</SelectItem>
+                      <SelectItem value="NEUTRAL" className="text-primary hover:bg-background-ultra">➡️ Neutral</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Volatility */}
                 <div>
-                  <Label>Expected Volatility</Label>
+                  <Label className="text-primary">Expected Volatility</Label>
                   <Select
                     value={marketConditions.volatility}
-                    onValueChange={(value) => setMarketConditions(prev => ({ ...prev, volatility: value as any }))}
+                    onValueChange={(value) => handleMarketConditionChange('volatility', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background-pure border-border-light text-primary">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LOW">📉 Low</SelectItem>
-                      <SelectItem value="MEDIUM">➡️ Medium</SelectItem>
-                      <SelectItem value="HIGH">📈 High</SelectItem>
+                    <SelectContent className="bg-background-pure border border-border-light">
+                      <SelectItem value="LOW" className="text-primary hover:bg-background-ultra">📉 Low</SelectItem>
+                      <SelectItem value="MEDIUM" className="text-primary hover:bg-background-ultra">➡️ Medium</SelectItem>
+                      <SelectItem value="HIGH" className="text-primary hover:bg-background-ultra">📈 High</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Risk Tolerance */}
                 <div>
-                  <Label>Risk Tolerance</Label>
+                  <Label className="text-primary">Risk Tolerance</Label>
                   <Select
                     value={marketConditions.riskTolerance}
-                    onValueChange={(value) => setMarketConditions(prev => ({ ...prev, riskTolerance: value as any }))}
+                    onValueChange={(value) => handleMarketConditionChange('riskTolerance', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background-pure border-border-light text-primary">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CONSERVATIVE">🛡️ Conservative</SelectItem>
-                      <SelectItem value="MODERATE">⚖️ Moderate</SelectItem>
-                      <SelectItem value="AGGRESSIVE">⚡ Aggressive</SelectItem>
+                    <SelectContent className="bg-background-pure border border-border-light">
+                      <SelectItem value="CONSERVATIVE" className="text-primary hover:bg-background-ultra">🛡️ Conservative</SelectItem>
+                      <SelectItem value="MODERATE" className="text-primary hover:bg-background-ultra">⚖️ Moderate</SelectItem>
+                      <SelectItem value="AGGRESSIVE" className="text-primary hover:bg-background-ultra">⚡ Aggressive</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Time Horizon */}
                 <div>
-                  <Label>Time Horizon (Days)</Label>
+                  <Label className="text-primary">Time Horizon (Days)</Label>
                   <Input
                     type="number"
                     value={marketConditions.timeHorizon}
-                    onChange={(e) => setMarketConditions(prev => ({ ...prev, timeHorizon: Number(e.target.value) }))}
+                    onChange={(e) => handleNumericInput('timeHorizon', e.target.value)}
+                    className="bg-background-pure border-border-light text-primary placeholder:text-primary focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    aria-describedby="time-horizon-help"
                   />
                 </div>
 
                 {/* Capital Available */}
                 <div>
-                  <Label>Capital Available</Label>
+                  <Label className="text-primary">Capital Available</Label>
                   <Input
                     type="number"
                     value={marketConditions.capitalAvailable}
-                    onChange={(e) => setMarketConditions(prev => ({ ...prev, capitalAvailable: Number(e.target.value) }))}
+                    onChange={(e) => handleNumericInput('capitalAvailable', e.target.value)}
+                    className="bg-background-pure border-border-light text-primary placeholder:text-primary focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    aria-describedby="capital-help"
                   />
                 </div>
 
                 {/* Current Price */}
                 <div>
-                  <Label>Current Price</Label>
+                  <Label className="text-primary">Current Price</Label>
                   <Input
                     type="number"
                     value={marketConditions.currentPrice}
-                    onChange={(e) => setMarketConditions(prev => ({ ...prev, currentPrice: Number(e.target.value) }))}
+                    onChange={(e) => handleNumericInput('currentPrice', e.target.value)}
+                    className="bg-background-pure border-border-light text-primary placeholder:text-primary focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    aria-describedby="price-help"
                   />
                 </div>
 
                 {/* Market Sentiment */}
                 <div>
-                  <Label>Market Sentiment</Label>
+                  <Label className="text-primary">Market Sentiment</Label>
                   <Select
                     value={marketConditions.marketSentiment}
-                    onValueChange={(value) => setMarketConditions(prev => ({ ...prev, marketSentiment: value as any }))}
+                    onValueChange={(value) => handleMarketConditionChange('marketSentiment', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background-pure border-border-light text-primary">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FEAR">😨 Fear</SelectItem>
-                      <SelectItem value="NEUTRAL">😐 Neutral</SelectItem>
-                      <SelectItem value="GREED">😍 Greed</SelectItem>
+                    <SelectContent className="bg-background-pure border border-border-light">
+                      <SelectItem value="FEAR" className="text-primary hover:bg-background-ultra">😨 Fear</SelectItem>
+                      <SelectItem value="NEUTRAL" className="text-primary hover:bg-background-ultra">😐 Neutral</SelectItem>
+                      <SelectItem value="GREED" className="text-primary hover:bg-background-ultra">😍 Greed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -213,24 +291,24 @@ export default function OptionStrategyRecommender() {
             </Card>
 
             {/* Market Insights */}
-            <Card>
+            <Card className="bg-background-pure border border-border-light">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-primary">
                   <Brain className="w-5 h-5" />
                   AI Insights
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{marketInsights.summary}</p>
+                <p className="text-sm text-primary">{marketInsights.summary}</p>
                 
                 {marketInsights.recommendations.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-sm mb-2">Recommendations:</h4>
+                    <h4 className="font-medium text-sm mb-2 text-primary">Recommendations:</h4>
                     <ul className="text-sm space-y-1">
                       {marketInsights.recommendations.map((rec, index) => (
                         <li key={index} className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          {rec}
+                          <CheckCircle className="w-4 h-4 text-success" />
+                          <span className="text-primary">{rec}</span>
                         </li>
                       ))}
                     </ul>
@@ -239,12 +317,12 @@ export default function OptionStrategyRecommender() {
 
                 {marketInsights.warnings.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-sm mb-2 text-red-600">Warnings:</h4>
+                    <h4 className="font-medium text-sm mb-2 text-error">Warnings:</h4>
                     <ul className="text-sm space-y-1">
                       {marketInsights.warnings.map((warning, index) => (
                         <li key={index} className="flex items-center gap-2">
-                          <XCircle className="w-4 h-4 text-red-500" />
-                          {warning}
+                          <XCircle className="w-4 h-4 text-error" />
+                          <span className="text-primary">{warning}</span>
                         </li>
                       ))}
                     </ul>
@@ -256,11 +334,21 @@ export default function OptionStrategyRecommender() {
 
           {/* Strategy Recommendations */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Loading State */}
+            {isLoading && (
+              <Alert className="border-info bg-info/10">
+                <Info className="h-4 w-4 text-info" />
+                <AlertDescription className="text-primary">
+                  Generating strategy recommendations...
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Top Recommendation */}
             {recommendations.length > 0 && (
-              <Card className="border-green-200 bg-green-50">
+              <Card className="border-success/20 bg-success/5">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-800">
+                  <CardTitle className="flex items-center gap-2 text-success">
                     <Zap className="w-5 h-5" />
                     🏆 Top Recommendation
                   </CardTitle>
@@ -268,48 +356,48 @@ export default function OptionStrategyRecommender() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold">{recommendations[0].strategy.name}</h3>
+                      <h3 className="text-xl font-bold text-primary">{recommendations[0].strategy.name}</h3>
                       <Badge className={getRiskColor(recommendations[0].riskLevel)}>
                         {recommendations[0].riskLevel} Risk
                       </Badge>
                     </div>
                     
-                    <p className="text-green-700">{recommendations[0].strategy.description}</p>
+                    <p className="text-primary">{recommendations[0].strategy.description}</p>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Suitability Score</p>
+                        <p className="text-sm text-primary">Suitability Score</p>
                         <p className={`text-2xl font-bold ${getScoreColor(recommendations[0].suitabilityScore)}`}>
                           {(recommendations[0].suitabilityScore * 100).toFixed(0)}%
                         </p>
                       </div>
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Expected Return</p>
-                        <p className="text-2xl font-bold text-green-500">
+                        <p className="text-sm text-primary">Expected Return</p>
+                        <p className="text-2xl font-bold text-success">
                           {formatCurrency(recommendations[0].expectedReturn)}
                         </p>
                       </div>
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Max Loss</p>
-                        <p className="text-2xl font-bold text-red-500">
+                        <p className="text-sm text-primary">Max Loss</p>
+                        <p className="text-2xl font-bold text-error">
                           {formatCurrency(recommendations[0].maxLoss)}
                         </p>
                       </div>
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Win Probability</p>
-                        <p className="text-2xl font-bold text-blue-500">
+                        <p className="text-sm text-primary">Win Probability</p>
+                        <p className="text-2xl font-bold text-info">
                           {(recommendations[0].probabilityOfProfit * 100).toFixed(1)}%
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="font-medium text-sm mb-2">Why This Strategy:</h4>
+                      <h4 className="font-medium text-sm mb-2 text-primary">Why This Strategy:</h4>
                       <ul className="text-sm space-y-1">
                         {recommendations[0].reasoning.slice(0, 3).map((reason, index) => (
                           <li key={index} className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            {reason}
+                            <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                            <span className="text-primary">{reason}</span>
                           </li>
                         ))}
                       </ul>
@@ -320,18 +408,18 @@ export default function OptionStrategyRecommender() {
             )}
 
             {/* All Recommendations */}
-            <Card>
+            <Card className="bg-background-pure border border-border-light">
               <CardHeader>
-                <CardTitle>All Strategy Recommendations</CardTitle>
+                <CardTitle className="text-primary">All Strategy Recommendations</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {recommendations.map((rec, index) => (
-                    <div key={index} className="border rounded-lg p-4 hover:bg-muted/50">
+                    <div key={index} className="border border-border-light rounded-lg p-4 hover:bg-background-ultra bg-background-pure">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-muted-foreground">#{index + 1}</span>
-                          <h3 className="font-semibold">{rec.strategy.name}</h3>
+                          <span className="text-lg font-bold text-primary">#{index + 1}</span>
+                          <h3 className="font-semibold text-primary">{rec.strategy.name}</h3>
                           <Badge className={getRiskColor(rec.riskLevel)}>
                             {rec.riskLevel}
                           </Badge>
@@ -340,24 +428,24 @@ export default function OptionStrategyRecommender() {
                           <p className={`text-lg font-bold ${getScoreColor(rec.suitabilityScore)}`}>
                             {(rec.suitabilityScore * 100).toFixed(0)}%
                           </p>
-                          <p className="text-xs text-muted-foreground">Match Score</p>
+                          <p className="text-xs text-primary">Match Score</p>
                         </div>
                       </div>
                       
-                      <p className="text-sm text-muted-foreground mb-3">{rec.strategy.description}</p>
+                      <p className="text-sm text-primary mb-3">{rec.strategy.description}</p>
                       
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
-                          <p className="text-muted-foreground">Expected Return</p>
-                          <p className="font-medium text-green-600">{formatCurrency(rec.expectedReturn)}</p>
+                          <p className="text-primary">Expected Return</p>
+                          <p className="font-medium text-success">{formatCurrency(rec.expectedReturn)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Max Loss</p>
-                          <p className="font-medium text-red-600">{formatCurrency(rec.maxLoss)}</p>
+                          <p className="text-primary">Max Loss</p>
+                          <p className="font-medium text-error">{formatCurrency(rec.maxLoss)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Win Rate</p>
-                          <p className="font-medium text-blue-600">{(rec.probabilityOfProfit * 100).toFixed(1)}%</p>
+                          <p className="text-primary">Win Rate</p>
+                          <p className="font-medium text-info">{(rec.probabilityOfProfit * 100).toFixed(1)}%</p>
                         </div>
                       </div>
 
@@ -372,9 +460,9 @@ export default function OptionStrategyRecommender() {
 
             {/* Strategy Categories */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
+              <Card className="bg-background-pure border border-border-light">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-primary">
                     <TrendingUp className="w-5 h-5" />
                     Volatility Strategies
                   </CardTitle>
@@ -382,18 +470,18 @@ export default function OptionStrategyRecommender() {
                 <CardContent>
                   <div className="space-y-2">
                     {volatilityStrategies.map((strategy, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
-                        <span className="text-sm">{strategy}</span>
-                        <Badge variant="secondary">Volatility</Badge>
+                      <div key={index} className="flex items-center justify-between p-2 bg-background-ultra rounded">
+                        <span className="text-sm text-primary">{strategy}</span>
+                        <Badge variant="secondary" className="border-border-light text-primary">Volatility</Badge>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-background-pure border border-border-light">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-primary">
                     <Target className="w-5 h-5" />
                     Outlook Strategies
                   </CardTitle>
@@ -401,9 +489,9 @@ export default function OptionStrategyRecommender() {
                 <CardContent>
                   <div className="space-y-2">
                     {outlookStrategies.map((strategy, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
-                        <span className="text-sm">{strategy}</span>
-                        <Badge variant="secondary">Directional</Badge>
+                      <div key={index} className="flex items-center justify-between p-2 bg-background-ultra rounded">
+                        <span className="text-sm text-primary">{strategy}</span>
+                        <Badge variant="secondary" className="border-border-light text-primary">Directional</Badge>
                       </div>
                     ))}
                   </div>

@@ -40,7 +40,7 @@ class TradingPsychologyAIService {
 
   constructor() {
     // In production, this would be your Railway deployment URL
-    this.baseUrl = process.env.REACT_APP_AI_SERVICE_URL || 'http://localhost:8000';
+    this.baseUrl = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000';
   }
 
   /**

@@ -1,12 +1,17 @@
-import React from 'react';
-import { TrendingUp, Zap, Target, Droplets, CheckCircle, ArrowRight } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { TrendingUp, Zap, Target, Droplets, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { Link } from 'react-router-dom';
 
 const Indicators = () => {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
   const indicators = [
     {
       id: 'trend-trader',
@@ -101,168 +106,260 @@ const Indicators = () => {
       ],
       benefits: [
         'Extended Position Management',
-        'Trend Wave Analysis',
-        'Strategic Precision'
+        'Strategic Timing',
+        'Risk Optimization'
       ],
       icon: Target
     },
     {
-      id: 'liquidity-trader',
-      title: 'LIQUIDITY TRADER',
-      headline: 'Unveiling Market Depths: Navigating with Liquidity Trader',
-      description: 'In the intricate tapestry of financial markets, staying ahead is an art. Liquidity Trader is your gateway to mastering this art by deciphering liquidity zones and strategically positioning yourself in anticipation of institutional moves.',
+      id: 'momentum-master',
+      title: 'MOMENTUM MASTER',
+      headline: 'Harnessing Market Momentum: Your Gateway to Profitable Trading',
+      description: 'Momentum Master is a sophisticated indicator designed to capture and capitalize on market momentum. This powerful tool combines multiple technical analysis techniques to identify high-probability trading opportunities in trending markets.',
       features: [
         {
-          title: 'Decoding Liquidity Zones',
-          description: 'Reveals critical areas where institutional presence is strongest.'
+          title: 'Multi-Timeframe Analysis',
+          description: 'Analyzes momentum across multiple timeframes for comprehensive market insight.'
         },
         {
-          title: 'Anticipating Institutional Moves',
-          description: 'Stay ahead of big players with predictive liquidity analysis.'
+          title: 'Momentum Divergence Detection',
+          description: 'Identifies momentum divergences that often precede trend reversals.'
         },
         {
-          title: 'Tactical Entry and Exit Points',
-          description: 'Precision timing based on liquidity flow patterns.'
+          title: 'Volume Confirmation',
+          description: 'Uses volume analysis to confirm momentum signals and filter out false positives.'
         },
         {
-          title: 'Real-Time Institutional Insights',
-          description: 'Live window into institutional trading activities.'
+          title: 'Adaptive Parameters',
+          description: 'Automatically adjusts parameters based on market volatility and conditions.'
         },
         {
-          title: 'Adaptable to Market Conditions',
-          description: 'Flexible design that adjusts to changing market liquidity.'
-        },
-        {
-          title: 'Elevate Your Trading Precision',
-          description: 'Trade with confidence using institutional-grade intelligence.'
+          title: 'Real-time Alerts',
+          description: 'Instant notifications for momentum shifts and trading opportunities.'
         }
       ],
       benefits: [
-        'Institutional Intelligence',
-        'Liquidity Mapping',
-        'Precision Entry'
+        'Momentum Capture',
+        'Divergence Detection',
+        'Volume Confirmation'
       ],
       icon: Droplets
     }
   ];
 
+  // Memoized indicator click handler
+  const handleIndicatorClick = useCallback(async (indicatorId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate loading delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      toast({
+        title: "Indicator Selected",
+        description: `Redirecting to ${indicatorId} details...`,
+        variant: "default",
+      });
+      
+      // Navigate to indicator detail page
+      window.location.href = `/indicator/${indicatorId}`;
+    } catch (error) {
+      console.error('Error navigating to indicator:', error);
+      toast({
+        title: "Navigation Error",
+        description: "Failed to navigate to indicator details.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  // Memoized purchase handler
+  const handlePurchase = useCallback(async (indicatorId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate purchase process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Purchase Successful",
+        description: `You have successfully purchased ${indicatorId}!`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error processing purchase:', error);
+      toast({
+        title: "Purchase Error",
+        description: "Failed to process purchase. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-soft">
       <Navbar />
       
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-secondary text-primary-foreground py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">PREMIUM INDICATORS</h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Professional trading indicators designed for serious traders
-          </p>
-          <div className="flex items-center justify-center gap-2 text-lg">
-            <TrendingUp className="h-6 w-6" />
-            <span>Advanced • Precise • Profitable</span>
+      <section className="relative py-20 bg-gradient-to-br from-primary/10 via-background-pure to-background-soft">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6">
+              Professional Trading Indicators
+            </h1>
+            <p className="text-lg text-primary max-w-4xl mx-auto leading-relaxed">
+              Discover our collection of advanced trading indicators designed to enhance your trading performance. 
+              Each indicator is crafted with precision and tested for reliability across various market conditions.
+            </p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 py-16 space-y-20">
-        {indicators.map((indicator, index) => (
-          <div key={indicator.id} className="space-y-8">
-            {/* Indicator Header */}
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <indicator.icon className="h-8 w-8 text-primary" />
-                </div>
-                <h2 className="text-4xl font-bold text-primary">{indicator.title}</h2>
-              </div>
-              <h3 className="text-2xl font-semibold text-foreground max-w-4xl mx-auto">
-                {indicator.headline}
-              </h3>
-              <p className="text-lg text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-                {indicator.description}
-              </p>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-12">
-              {/* Key Features */}
-              <div>
-                <h4 className="text-2xl font-bold mb-6 text-foreground">Key Features</h4>
-                <div className="space-y-6">
-                  {indicator.features.map((feature, idx) => (
-                    <div key={idx} className="space-y-2">
-                      <h5 className="text-lg font-semibold text-primary flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5" />
-                        {feature.title}
-                      </h5>
-                      <p className="text-muted-foreground ml-7">{feature.description}</p>
+      {/* Indicators Grid */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {indicators.map((indicator) => (
+              <Card key={indicator.id} className="bg-background-pure border border-border-light hover:shadow-lg transition-all duration-300">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 bg-primary/10 rounded-lg">
+                      <indicator.icon className="w-6 h-6 text-primary" />
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Benefits & CTA */}
-              <div>
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-8 space-y-6">
-                  <h4 className="text-2xl font-bold text-foreground">Why Choose {indicator.title}?</h4>
-                  <div className="space-y-3">
-                    {indicator.benefits.map((benefit, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-primary"></div>
-                        <span className="font-medium">{benefit}</span>
-                      </div>
-                    ))}
+                    <div>
+                      <CardTitle className="text-xl text-primary">{indicator.title}</CardTitle>
+                      <p className="text-sm text-primary">{indicator.headline}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-6">
+                  <p className="text-primary leading-relaxed">
+                    {indicator.description}
+                  </p>
+                  
+                  {/* Features */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-primary">Key Features:</h4>
+                    <div className="space-y-3">
+                      {indicator.features.slice(0, 3).map((feature, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium text-primary">{feature.title}</p>
+                            <p className="text-primary ml-7">{feature.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   
-                  <div className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">How it Works:</p>
-                      <p className="text-sm">
-                        {indicator.title} calculates critical indicators and employs advanced algorithms 
-                        to determine optimal entry and exit points with precision timing.
-                      </p>
-                    </div>
-                    
-                    <Button className="w-full" size="lg">
-                      Get {indicator.title}
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                    
-                    <div className="text-center space-y-1">
-                      <Badge variant="outline" className="text-green-600 border-green-600">
-                        7-Day Money Back Guarantee
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">Instant access upon purchase</p>
+                  {/* Benefits */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-primary">Benefits:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {indicator.benefits.map((benefit, index) => (
+                        <Badge key={index} variant="outline" className="bg-background-ultra text-primary border-primary">
+                          {benefit}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Divider */}
-            {index < indicators.length - 1 && (
-              <div className="border-t border-border my-16"></div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* CTA Section */}
-      <div className="bg-primary text-primary-foreground py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Trading?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join thousands of successful traders using XenAlgo indicators
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              View All Packages
-            </Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-              Try Free Demo
-            </Button>
+                  
+                  {/* How it Works */}
+                  <div className="bg-background-ultra p-4 rounded-lg">
+                    <p className="text-sm text-primary">How it Works:</p>
+                    <p className="text-primary mt-2">
+                      The indicator analyzes market data in real-time, providing clear buy/sell signals 
+                      with customizable parameters to suit your trading style.
+                    </p>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button
+                      onClick={() => handleIndicatorClick(indicator.id)}
+                      disabled={isLoading}
+                      className="flex-1 bg-primary text-background-soft hover:bg-primary-light"
+                      aria-label={`View details for ${indicator.title}`}
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          Learn More
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      onClick={() => handlePurchase(indicator.id)}
+                      disabled={isLoading}
+                      variant="outline"
+                      className="flex-1 bg-background-pure border-primary text-primary hover:bg-background-ultra"
+                      aria-label={`Purchase ${indicator.title}`}
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          Purchase Now
+                          <CheckCircle className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {/* Instant Access Badge */}
+                  <div className="text-center">
+                    <Badge variant="success" className="bg-success/10 text-success border-success/20">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Instant access upon purchase
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-background-pure border-t border-border-light">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-primary mb-4">
+            Ready to Transform Your Trading?
+          </h2>
+          <p className="text-primary mb-8 max-w-2xl mx-auto">
+            Join thousands of traders who have already improved their performance with our professional indicators.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/indicator-store">
+              <Button className="bg-primary text-background-soft hover:bg-primary-light">
+                View All Indicators
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/courses">
+              <Button variant="outline" className="bg-background-pure border-primary text-primary hover:bg-background-ultra">
+                Learn Trading
+                <Target className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </div>

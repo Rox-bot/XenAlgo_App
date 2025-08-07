@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Calculator, TrendingUp, PiggyBank, Home, Target, DollarSign, Percent, Clock, CreditCard, Building, Car, Wallet, Globe } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { useCurrency, currencies } from '@/contexts/CurrencyContext';
 
 const Index = () => {
   const { currency, setCurrency } = useCurrency();
+  const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
 
   const calculators = [
     {
@@ -98,116 +101,235 @@ const Index = () => {
     ? calculators 
     : calculators.filter(calc => calc.category === selectedCategory);
 
+  // Memoized currency change handler
+  const handleCurrencyChange = useCallback(async (value: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate currency change delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setCurrency(value);
+      
+      toast({
+        title: "Currency Updated",
+        description: `Currency changed to ${value}`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error changing currency:', error);
+      toast({
+        title: "Currency Error",
+        description: "Failed to change currency. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setCurrency, toast]);
+
+  // Memoized category change handler
+  const handleCategoryChange = useCallback(async (value: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate category change delay
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      setSelectedCategory(value);
+      
+      toast({
+        title: "Category Updated",
+        description: `Showing ${value === 'all' ? 'all calculators' : value} calculators`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error changing category:', error);
+      toast({
+        title: "Category Error",
+        description: "Failed to change category. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  // Memoized calculator click handler
+  const handleCalculatorClick = useCallback(async (calculatorId: string, calculatorPath: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate navigation delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      toast({
+        title: "Navigating",
+        description: `Opening ${calculatorId} calculator...`,
+        variant: "default",
+      });
+      
+      // Navigate to calculator
+      window.location.href = calculatorPath;
+    } catch (error) {
+      console.error('Error navigating to calculator:', error);
+      toast({
+        title: "Navigation Error",
+        description: "Failed to open calculator. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/20">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-secondary text-primary-foreground">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <div className="flex items-center justify-between mb-8">
-              <div></div> {/* Spacer */}
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                <Select
-                  value={currency.code}
-                  onValueChange={(value) => {
-                    const selectedCurrency = currencies.find(c => c.code === value);
-                    if (selectedCurrency) {
-                      setCurrency(selectedCurrency);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-32 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currencies.map((curr) => (
-                      <SelectItem key={curr.code} value={curr.code}>
-                        {curr.symbol} {curr.code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
-              Xen Calculators
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90 animate-fade-in">
-              Advanced financial calculators with smart features and insights
-            </p>
-            <div className="flex items-center justify-center gap-2 text-lg animate-fade-in">
-              <Calculator className="h-6 w-6" />
-              <span>Professional • Intelligent • Precise</span>
-            </div>
+    <div className="min-h-screen bg-background-soft">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6">
+            Financial Calculators
+          </h1>
+          <p className="text-lg text-primary max-w-3xl mx-auto mb-8">
+            Comprehensive financial calculators to help you make informed decisions about 
+            investing, loans, retirement planning, and more.
+          </p>
+          
+          {/* Currency Selector */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <span className="text-primary font-medium">Currency:</span>
+            <Select value={currency} onValueChange={handleCurrencyChange} disabled={isLoading}>
+              <SelectTrigger className="w-32 bg-background-pure border-border-light text-primary">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background-pure border border-border-light">
+                {currencies.map((curr) => (
+                  <SelectItem key={curr.code} value={curr.code} className="text-primary hover:bg-background-ultra">
+                    {curr.symbol} {curr.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
         {/* Category Filter */}
         <div className="mb-8">
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap justify-center gap-4">
             {categories.map((category) => (
-              <button
+              <Button
                 key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                  selectedCategory === category.id
-                    ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                    : 'bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground shadow-md border border-border'
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                onClick={() => handleCategoryChange(category.id)}
+                disabled={isLoading}
+                className={`flex items-center gap-2 ${
+                  selectedCategory === category.id 
+                    ? 'bg-primary text-background-soft hover:bg-primary-light' 
+                    : 'bg-background-pure border-primary text-primary hover:bg-background-ultra'
                 }`}
+                aria-label={`Filter by ${category.name}`}
               >
-                <category.icon className="h-4 w-4" />
+                <category.icon className="w-4 h-4" />
                 {category.name}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
-        {/* Calculator Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Calculators Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCalculators.map((calc) => (
-            <Link key={calc.id} to={calc.path}>
-              <Card className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-border bg-card hover:bg-accent/50">
-                <CardHeader className="text-center">
-                  <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-primary/10 text-primary">
-                    <calc.icon className="h-8 w-8" />
+            <Card 
+              key={calc.id} 
+              className="bg-background-pure border border-border-light hover:shadow-lg transition-all duration-300 cursor-pointer"
+              onClick={() => handleCalculatorClick(calc.id, calc.path)}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${calc.title} calculator`}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleCalculatorClick(calc.id, calc.path);
+                }
+              }}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-primary/10 rounded-lg">
+                    <calc.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <CardTitle className="text-lg text-card-foreground">{calc.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-sm text-center">{calc.description}</p>
-                  <div className="mt-4 text-center">
-                    <Button variant="outline" size="sm">
-                      Open Calculator
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+                  <CardTitle className="text-lg text-primary">{calc.title}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-primary text-sm text-center">{calc.description}</p>
+                <div className="mt-4 text-center">
+                  <Button 
+                    className="bg-primary text-background-soft hover:bg-primary-light"
+                    disabled={isLoading}
+                    aria-label={`Calculate with ${calc.title}`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        Calculate
+                        <Calculator className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-      </div>
 
-      {/* Footer */}
-      <footer className="bg-primary text-primary-foreground py-12 mt-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Calculator className="h-6 w-6" />
-            <span className="text-xl font-semibold">Xen Calculators</span>
+        {/* Empty State */}
+        {filteredCalculators.length === 0 && (
+          <div className="text-center py-12">
+            <Calculator className="w-16 h-16 mx-auto mb-4 text-primary" />
+            <h3 className="text-xl font-semibold text-primary mb-2">No Calculators Found</h3>
+            <p className="text-primary mb-6">
+              No calculators match the selected category. Try selecting a different category.
+            </p>
+            <Button 
+              onClick={() => handleCategoryChange('all')}
+              className="bg-primary text-background-soft hover:bg-primary-light"
+            >
+              Show All Calculators
+            </Button>
           </div>
-          <p className="text-primary-foreground/80 mb-6">
-            Empowering your financial decisions with intelligent calculators
+        )}
+
+        {/* CTA Section */}
+        <div className="mt-16 text-center">
+          <h2 className="text-3xl font-bold text-primary mb-4">
+            Need More Financial Tools?
+          </h2>
+          <p className="text-primary mb-8 max-w-2xl mx-auto">
+            Explore our comprehensive suite of trading tools, indicators, and educational resources 
+            to enhance your financial journey.
           </p>
-          <div className="flex justify-center gap-8 text-sm">
-            <span>• Advanced features</span>
-            <span>• Interactive charts</span>
-            <span>• Mobile-friendly</span>
-            <span>• Always free</span>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/calculators">
+              <Button className="bg-primary text-background-soft hover:bg-primary-light">
+                View All Tools
+                <Calculator className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/courses">
+              <Button variant="outline" className="bg-background-pure border-primary text-primary hover:bg-background-ultra">
+                Learn Trading
+                <Target className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
           </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };

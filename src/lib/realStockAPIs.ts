@@ -49,30 +49,7 @@ export interface TechnicalData {
   };
 }
 
-// Yahoo Finance API through proxy
-export const getYahooFinanceData = async (symbol: string): Promise<any> => {
-  try {
-    if (shouldUseProxy()) {
-      // Use proxy service
-      const data = await makeProxyRequest(API_CONFIG.PROXY_SERVICE.endpoints.yahooFinance, {
-        method: 'POST',
-        body: JSON.stringify({ symbol }),
-      });
-      return data;
-    } else {
-      // Direct API call (fallback)
-      const response = await fetch(`https://query2.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=price,summaryDetail,defaultKeyStatistics,financialData`);
-      if (!response.ok) {
-        throw new Error(`Yahoo Finance API error: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.quoteSummary.result[0];
-    }
-  } catch (error) {
-    console.error('Yahoo Finance API error:', error);
-    throw error;
-  }
-};
+
 
 // Alpha Vantage API through proxy
 export const getAlphaVantageData = async (symbol: string): Promise<TechnicalData> => {
@@ -100,7 +77,7 @@ export const getAlphaVantageData = async (symbol: string): Promise<TechnicalData
       // Process the data to extract technical indicators
       return {
         symbol,
-        rsi: 50, // Mock RSI
+        rsi: 0, // Will be calculated from real data
         macd: {
           macd: 0,
           signal: 0,
@@ -133,16 +110,7 @@ export const getStockNews = async (symbol: string, limit: number = 10): Promise<
       // Direct API call (fallback)
       const apiKey = import.meta.env.VITE_NEWS_API_KEY;
       if (!apiKey) {
-        // Return mock news if no API key
-        return [
-          {
-            title: `${symbol} Stock Analysis`,
-            description: `Latest news and analysis for ${symbol} stock.`,
-            url: '#',
-            publishedAt: new Date().toISOString(),
-            source: { name: 'Mock News' },
-          },
-        ];
+        throw new Error('News API key not configured');
       }
 
       const response = await fetch(`https://newsapi.org/v2/everything?q=${symbol}&language=en&sortBy=publishedAt&pageSize=${limit}&apiKey=${apiKey}`);
@@ -154,24 +122,18 @@ export const getStockNews = async (symbol: string, limit: number = 10): Promise<
     }
   } catch (error) {
     console.error('News API error:', error);
-    // Return mock news on error
-    return [
-      {
-        title: `${symbol} Stock Update`,
-        description: `Latest updates for ${symbol} stock.`,
-        url: '#',
-        publishedAt: new Date().toISOString(),
-        source: { name: 'Mock News' },
-      },
-    ];
+    throw new Error(`Failed to fetch news for ${symbol}: ${error.message}`);
   }
 };
 
 // Get comprehensive stock data
 export const getRealStockData = async (symbol: string): Promise<StockData> => {
   try {
-    // Get basic quote data
-    const quoteData = await getYahooFinanceData(symbol);
+    // Get basic quote data from DhanHQ
+    const quoteData = await makeProxyRequest(API_CONFIG.PROXY_SERVICE.endpoints.dhanhq.quote, {
+      method: 'POST',
+      body: JSON.stringify({ symbol }),
+    });
     
     // Get news
     const news = await getStockNews(symbol, 5);
@@ -183,10 +145,10 @@ export const getRealStockData = async (symbol: string): Promise<StockData> => {
       symbol,
       price: quoteData.price || 0,
       change: quoteData.change || 0,
-      changePercent: quoteData.change_percent || 0,
+      changePercent: quoteData.changePercent || 0,
       volume: quoteData.volume || 0,
-      marketCap: quoteData.market_cap || 0,
-      peRatio: quoteData.pe_ratio || 0,
+      marketCap: quoteData.marketCap || 0,
+      peRatio: quoteData.peRatio || 0,
       eps: quoteData.eps || 0,
       timestamp: quoteData.timestamp || new Date().toISOString(),
     };
@@ -196,8 +158,8 @@ export const getRealStockData = async (symbol: string): Promise<StockData> => {
   }
 };
 
-// Get trending stocks from Yahoo Finance
-export const getYahooTrendingStocks = async (): Promise<TrendingStockReal[]> => {
+// Get trending stocks from DhanHQ (Indian markets)
+export const getDhanHQTrendingStocks = async (): Promise<TrendingStockReal[]> => {
   try {
     if (shouldUseProxy()) {
       // Use proxy service for trending stocks
@@ -208,10 +170,10 @@ export const getYahooTrendingStocks = async (): Promise<TrendingStockReal[]> => 
       return data.trending_stocks || [];
     } else {
       // Direct API call (fallback)
-      const popularStocks = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'NVDA', 'META', 'NFLX', 'AMD', 'INTC'];
+      const popularIndianStocks = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'HINDUNILVR', 'ITC', 'SBIN', 'BHARTIARTL', 'KOTAKBANK'];
       const trendingStocks: TrendingStockReal[] = [];
       
-      for (const symbol of popularStocks) {
+      for (const symbol of popularIndianStocks) {
         try {
           const stockData = await getRealStockData(symbol);
           trendingStocks.push({
@@ -231,7 +193,7 @@ export const getYahooTrendingStocks = async (): Promise<TrendingStockReal[]> => 
       return trendingStocks;
     }
   } catch (error) {
-    console.error('Error getting Yahoo trending stocks:', error);
+    console.error('Error getting DhanHQ trending stocks:', error);
     return [];
   }
 };
@@ -311,13 +273,13 @@ export const getRedditTrendingStocks = async (): Promise<TrendingStockReal[]> =>
 // Get combined trending stocks
 export const getRealTrendingStocks = async (): Promise<TrendingStockReal[]> => {
   try {
-    const [yahooStocks, redditStocks] = await Promise.all([
-      getYahooTrendingStocks(),
+    const [dhanhqStocks, redditStocks] = await Promise.all([
+      getDhanHQTrendingStocks(),
       getRedditTrendingStocks(),
     ]);
     
     // Combine and deduplicate
-    const allStocks = [...yahooStocks, ...redditStocks];
+    const allStocks = [...dhanhqStocks, ...redditStocks];
     const uniqueStocks = new Map<string, TrendingStockReal>();
     
     for (const stock of allStocks) {

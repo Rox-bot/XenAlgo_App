@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { BarChart3, TrendingUp, Building, Search, ArrowRight, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
 const Screeners = () => {
-  const screeners = [
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+
+  // Memoized screeners data
+  const screeners = useMemo(() => [
     {
       id: 'volume-scanner',
       title: 'Daily Volume Scanner',
@@ -60,9 +65,10 @@ const Screeners = () => {
         'Institutional sentiment'
       ]
     }
-  ];
+  ], []);
 
-  const comingSoonScreeners = [
+  // Memoized coming soon screeners
+  const comingSoonScreeners = useMemo(() => [
     {
       title: 'Options Scanner',
       description: 'Identify high-probability options trading opportunities',
@@ -78,14 +84,64 @@ const Screeners = () => {
       description: 'Track stocks with strong momentum indicators',
       icon: Search
     }
-  ];
+  ], []);
+
+  // Memoized scanner handler
+  const handleScannerClick = useCallback(async (scannerId: string, scannerName: string) => {
+    try {
+      setIsLoading(scannerId);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Scanner Started",
+        description: `${scannerName} is now analyzing the market...`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error starting scanner:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start scanner. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(null);
+    }
+  }, [toast]);
+
+  // Memoized TradingView connection handler
+  const handleTradingViewConnect = useCallback(async () => {
+    try {
+      setIsLoading('tradingview');
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "TradingView Connected",
+        description: "Successfully connected to TradingView for enhanced analysis.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error connecting to TradingView:', error);
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to TradingView. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(null);
+    }
+  }, [toast]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-soft">
       <Navbar />
       
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary via-primary/90 to-secondary text-primary-foreground py-20">
+      <div className="bg-gradient-to-r from-primary via-primary/90 to-luxury-gold text-background-soft py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">Premium Scanners</h1>
           <p className="text-xl md:text-2xl mb-8 opacity-90">
@@ -102,24 +158,27 @@ const Screeners = () => {
         {/* Main Scanners Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {screeners.map((scanner) => (
-            <Card key={scanner.id} className="relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105">
+            <Card 
+              key={scanner.id} 
+              className="relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105 bg-background-pure border border-border-light"
+            >
               {!scanner.available && (
-                <Badge className="absolute top-4 right-4 bg-orange-500">Coming Soon</Badge>
+                <Badge className="absolute top-4 right-4 bg-warning text-background-soft">Coming Soon</Badge>
               )}
               <CardHeader className="text-center">
                 <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-primary/10 text-primary">
                   <scanner.icon className="h-8 w-8" />
                 </div>
-                <CardTitle className="text-xl">{scanner.title}</CardTitle>
+                <CardTitle className="text-xl text-primary">{scanner.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-muted-foreground text-center">{scanner.description}</p>
+                <p className="text-primary text-center">{scanner.description}</p>
                 
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Features:</h4>
+                  <h4 className="font-semibold text-sm text-primary">Features:</h4>
                   <ul className="space-y-1">
                     {scanner.features.map((feature, idx) => (
-                      <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                      <li key={idx} className="text-sm text-primary flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                         {feature}
                       </li>
@@ -128,11 +187,22 @@ const Screeners = () => {
                 </div>
                 
                 <Button 
-                  className="w-full" 
+                  className={`w-full ${
+                    scanner.available 
+                      ? 'bg-primary text-background-soft hover:bg-primary-light' 
+                      : 'bg-background-pure border border-border-light text-primary hover:bg-background-ultra'
+                  }`}
                   variant={scanner.available ? "default" : "secondary"}
-                  disabled={!scanner.available}
+                  disabled={!scanner.available || isLoading === scanner.id}
+                  onClick={() => scanner.available && handleScannerClick(scanner.id, scanner.title)}
+                  aria-label={`${scanner.available ? 'Start' : 'Coming soon'} ${scanner.title} scanner`}
                 >
-                  {scanner.available ? (
+                  {isLoading === scanner.id ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      Starting...
+                    </>
+                  ) : scanner.available ? (
                     <>
                       Scan Now
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -150,15 +220,15 @@ const Screeners = () => {
         </div>
 
         {/* How It Works Section */}
-        <div className="bg-muted/30 rounded-2xl p-8 mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">How Our Scanners Work</h2>
+        <div className="bg-background-pure border border-border-light rounded-2xl p-8 mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8 text-primary">How Our Scanners Work</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <span className="text-2xl font-bold text-primary">1</span>
               </div>
-              <h3 className="text-xl font-semibold">Real-time Data Processing</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-semibold text-primary">Real-time Data Processing</h3>
+              <p className="text-primary">
                 Our scanners continuously analyze market data from multiple sources to identify opportunities.
               </p>
             </div>
@@ -166,8 +236,8 @@ const Screeners = () => {
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <span className="text-2xl font-bold text-primary">2</span>
               </div>
-              <h3 className="text-xl font-semibold">Advanced Filtering</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-semibold text-primary">Advanced Filtering</h3>
+              <p className="text-primary">
                 Apply sophisticated filters based on technical, fundamental, and volume criteria.
               </p>
             </div>
@@ -175,8 +245,8 @@ const Screeners = () => {
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <span className="text-2xl font-bold text-primary">3</span>
               </div>
-              <h3 className="text-xl font-semibold">Actionable Results</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-xl font-semibold text-primary">Actionable Results</h3>
+              <p className="text-primary">
                 Get curated lists of stocks that meet your specific trading criteria with detailed insights.
               </p>
             </div>
@@ -185,19 +255,25 @@ const Screeners = () => {
 
         {/* Coming Soon Section */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">More Scanners Coming Soon</h2>
+          <h2 className="text-3xl font-bold text-center mb-8 text-primary">More Scanners Coming Soon</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {comingSoonScreeners.map((scanner, index) => (
-              <Card key={index} className="opacity-60 border-dashed">
+              <Card key={index} className="opacity-60 border-dashed bg-background-pure border border-border-light">
                 <CardHeader className="text-center">
-                  <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-muted text-muted-foreground">
+                  <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-background-ultra text-primary">
                     <scanner.icon className="h-8 w-8" />
                   </div>
-                  <CardTitle className="text-lg">{scanner.title}</CardTitle>
+                  <CardTitle className="text-lg text-primary">{scanner.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground text-sm text-center mb-4">{scanner.description}</p>
-                  <Button variant="ghost" size="sm" disabled className="w-full">
+                  <p className="text-primary text-sm text-center mb-4">{scanner.description}</p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    disabled 
+                    className="w-full bg-background-pure border border-border-light text-primary hover:bg-background-ultra"
+                    aria-label={`${scanner.title} coming soon`}
+                  >
                     <Clock className="mr-2 h-4 w-4" />
                     Coming Soon...
                   </Button>
@@ -208,51 +284,66 @@ const Screeners = () => {
         </div>
 
         {/* Features Comparison */}
-        <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Scanner Features</h2>
+        <div className="bg-gradient-to-br from-primary/5 to-luxury-gold/5 rounded-2xl p-8 border border-border-light">
+          <h2 className="text-3xl font-bold text-center mb-8 text-primary">Scanner Features</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-                <Clock className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mx-auto">
+                <Clock className="h-6 w-6 text-success" />
               </div>
-              <h3 className="font-semibold">Real-time Updates</h3>
-              <p className="text-sm text-muted-foreground">Live market data processing</p>
+              <h3 className="font-semibold text-primary">Real-time Updates</h3>
+              <p className="text-sm text-primary">Live market data processing</p>
             </div>
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center mx-auto">
+                <TrendingUp className="h-6 w-6 text-info" />
               </div>
-              <h3 className="font-semibold">Advanced Analytics</h3>
-              <p className="text-sm text-muted-foreground">Sophisticated screening algorithms</p>
+              <h3 className="font-semibold text-primary">Advanced Analytics</h3>
+              <p className="text-sm text-primary">Sophisticated screening algorithms</p>
             </div>
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto">
-                <Search className="h-6 w-6 text-purple-600" />
+              <div className="w-12 h-12 rounded-full bg-luxury-gold/10 flex items-center justify-center mx-auto">
+                <Search className="h-6 w-6 text-luxury-gold" />
               </div>
-              <h3 className="font-semibold">Custom Filters</h3>
-              <p className="text-sm text-muted-foreground">Personalized screening criteria</p>
+              <h3 className="font-semibold text-primary">Custom Filters</h3>
+              <p className="text-sm text-primary">Personalized screening criteria</p>
             </div>
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto">
-                <Building className="h-6 w-6 text-orange-600" />
+              <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mx-auto">
+                <Building className="h-6 w-6 text-warning" />
               </div>
-              <h3 className="font-semibold">Institutional Data</h3>
-              <p className="text-sm text-muted-foreground">Professional-grade insights</p>
+              <h3 className="font-semibold text-primary">Institutional Data</h3>
+              <p className="text-sm text-primary">Professional-grade insights</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* TradingView Integration Footer */}
-      <div className="bg-muted py-8">
+      <div className="bg-background-pure border-t border-border-light py-8">
         <div className="container mx-auto px-4 text-center">
-          <h3 className="text-xl font-semibold mb-4">Track all markets on TradingView</h3>
-          <p className="text-muted-foreground mb-4">
+          <h3 className="text-xl font-semibold mb-4 text-primary">Track all markets on TradingView</h3>
+          <p className="text-primary mb-4">
             Integrate our scanner results with TradingView for comprehensive market analysis
           </p>
-          <Button variant="outline">
-            Connect TradingView
-            <ArrowRight className="ml-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            className="bg-background-pure border-primary text-primary hover:bg-background-ultra"
+            onClick={handleTradingViewConnect}
+            disabled={isLoading === 'tradingview'}
+            aria-label="Connect to TradingView"
+          >
+            {isLoading === 'tradingview' ? (
+              <>
+                <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Connecting...
+              </>
+            ) : (
+              <>
+                Connect TradingView
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         </div>
       </div>

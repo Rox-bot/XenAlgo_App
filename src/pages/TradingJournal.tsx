@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plus, Settings, Download, Filter, TrendingUp, TrendingDown, DollarSign, BarChart3, AlertCircle, Tag, Crown } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Plus, Settings, Download, Filter, TrendingUp, TrendingDown, DollarSign, BarChart3, AlertCircle, Tag, Crown, Lock, Unlock, Users, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMobile } from "@/hooks/useMobile";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { getTradingJournalStatus, getTradingJournalUpgradeMessage } from "@/lib/subscription";
+import Navbar from "@/components/layout/Navbar";
 
 export default function TradingJournal() {
   const { user } = useAuth();
@@ -49,40 +51,90 @@ export default function TradingJournal() {
     }
   }, [user, navigate]);
 
-  const filteredTrades = trades.filter(trade => {
-    const statusMatch = statusFilter === "all" || trade.status?.toLowerCase() === statusFilter;
-    const symbolMatch = !symbolFilter || trade.symbol.toLowerCase().includes(symbolFilter.toLowerCase());
-    const categoryMatch = !categoryFilter || trade.category_id === categoryFilter;
-    return statusMatch && symbolMatch && categoryMatch;
-  });
-
-  const calculatePnL = (trade: any) => {
-    if (!trade.exit_price || !trade.entry_price || !trade.quantity) return 0;
-    const multiplier = trade.trade_type === 'LONG' ? 1 : -1;
-    return (trade.exit_price - trade.entry_price) * trade.quantity * multiplier;
+  // Enhanced P&L calculation with error handling
+  const calculatePnL = (trade: any): number => {
+    try {
+      if (!trade?.exit_price || !trade?.entry_price || !trade?.quantity) return 0;
+      const multiplier = trade.trade_type === 'LONG' ? 1 : -1;
+      return (trade.exit_price - trade.entry_price) * trade.quantity * multiplier;
+    } catch (error) {
+      console.error('Error calculating P&L:', error);
+      return 0;
+    }
   };
 
-  const closedTrades = trades.filter(t => t.status === 'CLOSED');
-  const openTrades = trades.filter(t => t.status === 'OPEN');
-  const totalPnL = closedTrades.reduce((sum, trade) => sum + calculatePnL(trade), 0);
-  const winRate = closedTrades.length > 0 ? (closedTrades.filter(t => calculatePnL(t) > 0).length / closedTrades.length) * 100 : 0;
-  
-  // Calculate monthly P&L (current month)
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const monthlyPnL = closedTrades.filter(t => {
-    if (!t.exit_date) return false;
-    const exitDate = new Date(t.exit_date);
-    return exitDate.getMonth() === currentMonth && exitDate.getFullYear() === currentYear;
-  }).reduce((sum, trade) => sum + calculatePnL(trade), 0);
+  // Memoized filtered trades for better performance
+  const filteredTrades = useMemo(() => {
+    return trades.filter(trade => {
+      try {
+        const statusMatch = statusFilter === "all" || trade.status?.toLowerCase() === statusFilter;
+        const symbolMatch = !symbolFilter || trade.symbol.toLowerCase().includes(symbolFilter.toLowerCase());
+        const categoryMatch = !categoryFilter || trade.category_id === categoryFilter;
+        return statusMatch && symbolMatch && categoryMatch;
+      } catch (error) {
+        console.error('Error filtering trade:', error);
+        return false;
+      }
+    });
+  }, [trades, statusFilter, symbolFilter, categoryFilter]);
 
-  // Calculate portfolio risk (simplified - sum of open position risks)
-  const portfolioRisk = openTrades.reduce((sum, trade) => {
-    if (!trade.stop_loss || !trade.entry_price || !trade.quantity) return sum;
-    const riskPerShare = Math.abs(trade.entry_price - trade.stop_loss);
-    const multiplier = trade.trade_type === 'LONG' ? 1 : -1;
-    return sum + (riskPerShare * trade.quantity * multiplier);
-  }, 0);
+  // Memoized calculations for better performance
+  const tradingStats = useMemo(() => {
+    try {
+      const closedTrades = trades.filter(t => t.status === 'CLOSED');
+      const openTrades = trades.filter(t => t.status === 'OPEN');
+      const totalPnL = closedTrades.reduce((sum, trade) => sum + calculatePnL(trade), 0);
+      const winRate = closedTrades.length > 0 ? (closedTrades.filter(t => calculatePnL(t) > 0).length / closedTrades.length) * 100 : 0;
+      
+      // Calculate monthly P&L (current month) with better date handling
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const monthlyPnL = closedTrades.filter(t => {
+        try {
+          if (!t.exit_date) return false;
+          const exitDate = new Date(t.exit_date);
+          return exitDate.getMonth() === currentMonth && exitDate.getFullYear() === currentYear;
+        } catch (error) {
+          console.error('Error parsing exit date:', error);
+          return false;
+        }
+      }).reduce((sum, trade) => sum + calculatePnL(trade), 0);
+
+      // Calculate portfolio risk (simplified - sum of open position risks) with error handling
+      const portfolioRisk = openTrades.reduce((sum, trade) => {
+        try {
+          if (!trade?.stop_loss || !trade?.entry_price || !trade?.quantity) return sum;
+          const riskPerShare = Math.abs(trade.entry_price - trade.stop_loss);
+          const multiplier = trade.trade_type === 'LONG' ? 1 : -1;
+          return sum + (riskPerShare * trade.quantity * multiplier);
+        } catch (error) {
+          console.error('Error calculating portfolio risk:', error);
+          return sum;
+        }
+      }, 0);
+
+      return {
+        closedTrades,
+        openTrades,
+        totalPnL,
+        winRate,
+        monthlyPnL,
+        portfolioRisk
+      };
+    } catch (error) {
+      console.error('Error calculating trading stats:', error);
+      return {
+        closedTrades: [],
+        openTrades: [],
+        totalPnL: 0,
+        winRate: 0,
+        monthlyPnL: 0,
+        portfolioRisk: 0
+      };
+    }
+  }, [trades]);
+
+  const { closedTrades, openTrades, totalPnL, winRate, monthlyPnL, portfolioRisk } = tradingStats;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -94,17 +146,23 @@ export default function TradingJournal() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      return new Date(dateString).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
   const handleAddTrade = () => {
-    if (!canAddTrade(currentUsage.monthlyTrades)) {
+    const tradeStatus = getTradingJournalStatus(currentUsage.monthlyTrades, subscription);
+    if (!tradeStatus.canAdd) {
       setShowUpgradeModal(true);
       return;
     }
@@ -139,13 +197,13 @@ export default function TradingJournal() {
     {
       key: 'symbol',
       label: 'Symbol',
-      render: (value: string) => <span className="font-medium">{value}</span>,
+      render: (value: string) => <span className="font-medium text-primary">{value}</span>,
     },
     {
       key: 'trade_type',
       label: 'Type',
       render: (value: string) => (
-        <Badge variant={value === 'LONG' ? 'default' : 'secondary'}>
+        <Badge variant={value === 'LONG' ? 'long' : 'short'}>
           {value}
         </Badge>
       ),
@@ -166,11 +224,11 @@ export default function TradingJournal() {
       render: (value: number, row: any) => {
         const pnl = calculatePnL(row);
         return row.status === 'CLOSED' ? (
-          <span className={pnl >= 0 ? 'text-green-500' : 'text-red-500'}>
+          <span className={pnl >= 0 ? 'text-success' : 'text-error'}>
             {formatCurrency(pnl)}
           </span>
         ) : (
-          <span className="text-blue-500">Unrealized</span>
+          <span className="text-info">Unrealized</span>
         );
       },
     },
@@ -202,9 +260,9 @@ export default function TradingJournal() {
       render: (value: any, row: any) => (
         <div className="flex gap-2">
           <Link to={`/trading-journal/trade/${row.id}`}>
-            <Button size="sm" variant="outline">View</Button>
+            <Button size="sm" variant="outline" className="border-border-light text-primary hover:bg-background-ultra">View</Button>
           </Link>
-          <Button size="sm" variant="outline">Edit</Button>
+          <Button size="sm" variant="outline" className="border-border-light text-primary hover:bg-background-ultra">Edit</Button>
         </div>
       ),
       mobile: false, // Hide actions on mobile
@@ -216,8 +274,8 @@ export default function TradingJournal() {
     <div className="space-y-3">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="font-semibold text-lg">{trade.symbol}</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="font-semibold text-lg text-primary">{trade.symbol}</h3>
+          <p className="text-sm text-primary">
             {trade.trade_type} • {trade.status}
           </p>
         </div>
@@ -228,31 +286,31 @@ export default function TradingJournal() {
       
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-sm text-muted-foreground">Entry Price</p>
-          <p className="font-medium">{formatCurrency(trade.entry_price)}</p>
+          <p className="text-sm text-primary">Entry Price</p>
+          <p className="font-medium text-primary">{formatCurrency(trade.entry_price)}</p>
         </div>
         <div>
-          <p className="text-sm text-muted-foreground">Quantity</p>
-          <p className="font-medium">{trade.quantity}</p>
+          <p className="text-sm text-primary">Quantity</p>
+          <p className="font-medium text-primary">{trade.quantity}</p>
         </div>
       </div>
       
-      <div className="flex justify-between items-center pt-2 border-t">
+      <div className="flex justify-between items-center pt-2 border-t border-border-light">
         <div>
-          <p className="text-sm text-muted-foreground">P&L</p>
+          <p className="text-sm text-primary">P&L</p>
           {trade.status === 'CLOSED' ? (
-            <p className={`font-medium ${calculatePnL(trade) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <p className={`font-medium ${calculatePnL(trade) >= 0 ? 'text-success' : 'text-error'}`}>
               {formatCurrency(calculatePnL(trade))}
             </p>
           ) : (
-            <p className="text-blue-500 font-medium">Unrealized</p>
+            <p className="text-info font-medium">Unrealized</p>
           )}
         </div>
         <div className="flex gap-2">
           <Link to={`/trading-journal/trade/${trade.id}`}>
-            <Button size="sm" variant="outline">View</Button>
+            <Button size="sm" variant="outline" className="border-border-light text-primary hover:bg-background-ultra">View</Button>
           </Link>
-          <Button size="sm" variant="outline">Edit</Button>
+          <Button size="sm" variant="outline" className="border-border-light text-primary hover:bg-background-ultra">Edit</Button>
         </div>
       </div>
     </div>
@@ -278,65 +336,87 @@ export default function TradingJournal() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Trading Journal</h1>
-            <p className="text-muted-foreground mt-1">Track and analyze your trading performance</p>
+            <h1 className="text-3xl font-bold text-primary">Trading Journal</h1>
+            <p className="text-primary mt-1">Track and analyze your trading performance</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleAddTrade} className="bg-primary hover:bg-primary/90">
+            <Button onClick={handleAddTrade} className="bg-primary text-background-soft hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-2" />
               Add New Trade
             </Button>
             <Link to="/trading-journal/settings">
-              <Button variant="outline">
+              <Button variant="outline" className="border-border-light text-primary hover:bg-background-ultra">
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
             </Link>
-            <Button variant="outline">
+            <Button variant="outline" className="border-border-light text-primary hover:bg-background-ultra">
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
           </div>
         </div>
 
-        {/* Subscription Status */}
+        {/* Trading Journal Status */}
         {subscription && (
-          <Card className="mb-6">
+          <Card className="mb-6 bg-background-pure border border-border-light shadow-medium">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Crown className="h-5 w-5 text-primary" />
+                  {subscription?.tier === 'free' ? (
+                    <Unlock className="h-5 w-5 text-success" />
+                  ) : (
+                    <Crown className="h-5 w-5 text-luxury-gold" />
+                  )}
                   <div>
-                    <p className="font-medium">{subscription.tier.toUpperCase()} Plan</p>
-                    <p className="text-sm text-muted-foreground">
-                      {isUnlimited('monthlyTrades') ? 'Unlimited' : `${currentUsage.monthlyTrades}/${getLimit('monthlyTrades')}`} trades this month
+                    <p className="text-sm font-medium text-primary">
+                      Trading Journal Status
+                    </p>
+                    <p className="text-sm">
+                      {getTradingJournalUpgradeMessage(currentUsage.monthlyTrades)}
                     </p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setShowUpgradeModal(true)}>
-                  Upgrade
-                </Button>
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">
+                      {currentUsage.monthlyTrades} / {subscription?.limits?.monthlyTrades === -1 ? '∞' : subscription?.limits?.monthlyTrades} trades
+                    </span>
+                  </div>
+                  {subscription?.tier === 'free' && (
+                    <Badge className="mt-1 bg-background-pure border border-success text-success">
+                      Free Plan
+                    </Badge>
+                  )}
+                  {subscription?.tier !== 'free' && (
+                    <Badge className="mt-1 bg-background-pure border border-luxury-gold text-luxury-gold">
+                      {subscription.tier.toUpperCase()} Plan
+                    </Badge>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" aria-label="Trading performance statistics">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total P&L</p>
-                  <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  <p className="text-sm text-primary">Total P&L</p>
+                  <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-success' : 'text-error'}`}>
                     {formatCurrency(totalPnL)}
                   </p>
                 </div>
-                <DollarSign className={`w-8 h-8 ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`} />
+                <DollarSign className={`w-8 h-8 ${totalPnL >= 0 ? 'text-success' : 'text-error'}`} />
               </div>
             </CardContent>
           </Card>
@@ -345,10 +425,10 @@ export default function TradingJournal() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Open Positions</p>
-                  <p className="text-2xl font-bold text-foreground">{openTrades.length}</p>
+                  <p className="text-sm text-primary">Open Positions</p>
+                  <p className="text-2xl font-bold text-primary">{openTrades.length}</p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-blue-500" />
+                <TrendingUp className="w-8 h-8 text-info" />
               </div>
             </CardContent>
           </Card>
@@ -357,10 +437,10 @@ export default function TradingJournal() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Win Rate</p>
-                  <p className="text-2xl font-bold text-foreground">{winRate.toFixed(1)}%</p>
+                  <p className="text-sm text-primary">Win Rate</p>
+                  <p className="text-2xl font-bold text-primary">{winRate.toFixed(1)}%</p>
                 </div>
-                <BarChart3 className="w-8 h-8 text-purple-500" />
+                <BarChart3 className="w-8 h-8 text-luxury-gold" />
               </div>
             </CardContent>
           </Card>
@@ -369,10 +449,10 @@ export default function TradingJournal() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Portfolio Risk</p>
-                  <p className="text-2xl font-bold text-orange-500">{formatCurrency(portfolioRisk)}</p>
+                  <p className="text-sm text-primary">Portfolio Risk</p>
+                  <p className="text-2xl font-bold text-warning">{formatCurrency(portfolioRisk)}</p>
                 </div>
-                <AlertCircle className="w-8 h-8 text-orange-500" />
+                <AlertCircle className="w-8 h-8 text-warning" />
               </div>
             </CardContent>
           </Card>
@@ -448,7 +528,14 @@ export default function TradingJournal() {
               <CardContent>
                 {filteredTrades.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">No trades found. Add your first trade to get started!</p>
+                    <p className="text-primary">No trades found. Add your first trade to get started!</p>
+                    <Button 
+                      onClick={handleAddTrade} 
+                      className="mt-4 bg-primary hover:bg-primary/90"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Trade
+                    </Button>
                   </div>
                 ) : (
                   <ResponsiveTable

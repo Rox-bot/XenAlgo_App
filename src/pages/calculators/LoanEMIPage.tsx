@@ -110,21 +110,21 @@ const LoanEMIPage = () => {
             <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
               <CardContent className="pt-6 text-center">
                 <DollarSign className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Monthly EMI</p>
+                <p className="text-sm text-text-cool">Monthly EMI</p>
                 <p className="text-2xl font-bold">{formatCurrency(results.emi)}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
               <CardContent className="pt-6 text-center">
                 <Calendar className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Total Payment</p>
+                <p className="text-sm text-text-cool">Total Payment</p>
                 <p className="text-2xl font-bold">{formatCurrency(results.totalPayment)}</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-red-500/10 to-red-500/5">
               <CardContent className="pt-6 text-center">
                 <Percent className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Total Interest</p>
+                <p className="text-sm text-text-cool">Total Interest</p>
                 <p className="text-2xl font-bold">{formatCurrency(results.totalInterest)}</p>
               </CardContent>
             </Card>

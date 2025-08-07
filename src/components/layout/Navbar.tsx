@@ -12,16 +12,28 @@ import {
   Menu, 
   X, 
   ChevronDown, 
-  Calculator, 
-  TrendingUp, 
-  BarChart3, 
-  BookOpen, 
-  AlertTriangle,
   Brain,
   Target,
-  FileText,
+  BarChart3,
+  TrendingUp,
+  Calculator,
+  BookOpen,
   User,
-  LogOut
+  LogOut,
+  Crown,
+  Sparkles,
+  Zap,
+  FileText,
+  Settings,
+  Download,
+  Play,
+  Shield,
+  Users,
+  Award,
+  Home,
+  DollarSign,
+  ChartBar,
+  Heart
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,192 +43,154 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Market ticker data
-  const [tickerData, setTickerData] = useState([
-    { symbol: 'NIFTY 50', price: '18,234.50', change: '+2.34%', isPositive: true },
-    { symbol: 'SENSEX', price: '60,123.75', change: '+1.87%', isPositive: true },
-    { symbol: 'BANK NIFTY', price: '42,567.80', change: '-0.92%', isPositive: false },
-    { symbol: 'RELIANCE', price: '2,456.30', change: '+1.23%', isPositive: true },
-    { symbol: 'TCS', price: '3,789.45', change: '+0.78%', isPositive: true },
-    { symbol: 'INFY', price: '1,567.90', change: '-0.45%', isPositive: false },
-    { symbol: 'HDFC BANK', price: '1,678.20', change: '+1.56%', isPositive: true },
-    { symbol: 'ICICI BANK', price: '987.65', change: '+2.12%', isPositive: true }
-  ]);
-
-  // Animate ticker
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTickerData(prev => {
-        const newData = [...prev];
-        // Simulate price updates
-        newData.forEach(item => {
-          const change = (Math.random() - 0.5) * 0.5;
-          const currentPrice = parseFloat(item.price.replace(/,/g, ''));
-          const newPrice = currentPrice + change;
-          const priceChange = ((change / currentPrice) * 100);
-          
-          item.price = newPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-          item.change = `${priceChange >= 0 ? '+' : ''}${priceChange.toFixed(2)}%`;
-          item.isPositive = priceChange >= 0;
-        });
-        return newData;
-      });
-    }, 3000); // Update every 3 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50">
-      {/* Market Ticker */}
-      <div className="bg-primary/5 border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center overflow-hidden h-8">
-            <div className="flex items-center gap-6 animate-scroll whitespace-nowrap">
-              {tickerData.map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm font-medium">
-                  <span className="text-foreground">{item.symbol}</span>
-                  <span className="text-muted-foreground">{item.price}</span>
-                  <span className={`${item.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                    {item.change}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Navigation */}
+    <nav className="bg-primary-deep text-background-soft border-b border-border-light/50 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">X</span>
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-luxury-gold to-warning-DEFAULT rounded-xl flex items-center justify-center shadow-glow">
+              <Brain className="w-6 h-6 text-primary-deep" />
             </div>
-            <span className="font-bold text-xl">XenAlgo</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl bg-gradient-to-r from-luxury-gold to-warning-DEFAULT bg-clip-text text-transparent">
+                XenAlgo
+              </span>
+              <span className="text-xs text-background-soft/80">AI Trading Intelligence</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-8">
+            {/* Home */}
             <Link
               to="/"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/') ? 'text-primary' : 'text-muted-foreground'
+              className={`text-sm font-medium transition-colors hover:text-luxury-gold flex items-center gap-2 ${
+                isActive('/') ? 'text-luxury-gold' : 'text-background-soft'
               }`}
             >
+              <Home className="w-4 h-4" />
               Home
             </Link>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium">
-                  Financial Tools
-                  <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem>
-                  <Link to="/calculators" className="w-full">Financial Calculators</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/screeners" className="w-full">Market Screeners</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/indicators" className="w-full">Technical Indicators</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/option-simulator" className="w-full">Option Simulator</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/option-recommender" className="w-full">AI Strategy Recommender</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium">
-                  Trading Tools
-                  <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuItem>
-                  <Link to="/trading-journal" className="w-full">Trading Journal</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/trading-journal/analytics" className="w-full">Trading Analytics</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/trading-journal/settings" className="w-full">Journal Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/trading-psychology" className="w-full">Trading Psychology</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
+            {/* Market Insights */}
             <Link
-              to="/courses"
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/courses') ? 'text-primary' : 'text-muted-foreground'
+              to="/market-insights"
+              className={`text-sm font-medium transition-colors hover:text-luxury-gold flex items-center gap-2 ${
+                isActive('/market-insights') ? 'text-luxury-gold' : 'text-background-soft'
               }`}
             >
+              <FileText className="w-4 h-4" />
+              Market Insights
+            </Link>
+
+            {/* Courses */}
+            <Link
+              to="/courses"
+              className={`text-sm font-medium transition-colors hover:text-luxury-gold flex items-center gap-2 ${
+                isActive('/courses') ? 'text-luxury-gold' : 'text-background-soft'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
               Courses
             </Link>
 
+            {/* Financial Tools Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-sm font-medium text-background-soft hover:text-luxury-gold hover:bg-primary/20">
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Tools
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-background-pure border border-border-light">
+                <DropdownMenuItem asChild>
+                  <Link to="/calculators" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                    <Calculator className="w-4 h-4" />
+                    Calculators
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/indicators" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                    <BarChart3 className="w-4 h-4" />
+                    Indicators
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/screeners" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                    <Target className="w-4 h-4" />
+                    Screeners
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/trading-journal" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                    <ChartBar className="w-4 h-4" />
+                    Trading Journal
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* AI Edge */}
             <Link
-              to="/market-insights" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/market-insights') ? 'text-primary' : 'text-muted-foreground'
+              to="/ai-edge"
+              className={`text-sm font-medium transition-colors hover:text-luxury-gold flex items-center gap-2 ${
+                isActive('/ai-edge') ? 'text-luxury-gold' : 'text-background-soft'
               }`}
             >
-              Market Insights
-            </Link>
-            <Link 
-              to="/charting" 
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/charting') ? 'text-primary' : 'text-muted-foreground'
-              }`}
-            >
-              Charts
+              <Brain className="w-4 h-4" />
+              AI Edge
             </Link>
           </div>
 
           {/* Right Side */}
           <div className="flex items-center space-x-4">
-            {/* Debug theme info */}
-            <div className="theme-debug">
-              Theme: {document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
-            </div>
-            
+            {/* Theme Toggle */}
             <ThemeToggle />
-            
+
+            {/* User Menu */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-sm font-medium">
-                    <User className="mr-2 h-4 w-4" />
-                    {user.email}
-                    <ChevronDown className="ml-1 h-4 w-4" />
+                  <Button variant="ghost" className="text-background-soft hover:text-luxury-gold hover:bg-primary/20">
+                    <User className="w-4 h-4 mr-2" />
+                    {user.email?.split('@')[0]}
+                    <ChevronDown className="w-4 h-4 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem>
-                    <Link to="/dashboard" className="w-full">Dashboard</Link>
+                <DropdownMenuContent className="w-56 bg-background-pure border border-border-light">
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                      <BarChart3 className="w-4 h-4" />
+                      Dashboard
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link to="/trading-journal" className="w-full">Trading Journal</Link>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                      <User className="w-4 h-4" />
+                      Profile
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link to="/trading-journal/settings" className="w-full">Settings</Link>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem asChild>
+                    <Link to="/subscription" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                      <Crown className="w-4 h-4" />
+                      Subscription
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => signOut()}
+                    className="flex items-center gap-2 text-error hover:text-error/80"
+                  >
+                    <LogOut className="w-4 h-4" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -224,179 +198,112 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center space-x-2">
                 <Link to="/login">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" className="text-background-soft hover:text-luxury-gold hover:bg-primary/20">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button size="sm">
+                  <Button className="bg-luxury-gold text-primary-deep hover:bg-luxury-goldHover">
                     Get Started
                   </Button>
                 </Link>
-          </div>
+              </div>
             )}
 
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
-              size="sm"
-              className="md:hidden"
+              className="lg:hidden text-background-soft hover:text-luxury-gold hover:bg-primary/20"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </Button>
-          </div>
           </div>
         </div>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background">
-          <div className="container mx-auto px-4 py-4 space-y-4">
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden py-4 border-t border-border-light/50 bg-primary-deep">
+            <div className="space-y-2">
               <Link
                 to="/"
-              className={`block text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/') ? 'text-primary' : 'text-muted-foreground'
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
+                className={`block px-4 py-2 text-sm font-medium transition-colors hover:text-luxury-gold ${
+                  isActive('/') ? 'text-luxury-gold' : 'text-background-soft'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
+                <Home className="w-4 h-4 inline mr-2" />
                 Home
-            </Link>
-            
-            <div className="space-y-2">
-              <div className="text-sm font-medium text-muted-foreground">Financial Tools</div>
-              <div className="pl-4 space-y-2">
-                <Link 
-                  to="/calculators" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Financial Calculators
               </Link>
               <Link
-                  to="/screeners" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                to="/market-insights"
+                className={`block px-4 py-2 text-sm font-medium transition-colors hover:text-luxury-gold ${
+                  isActive('/market-insights') ? 'text-luxury-gold' : 'text-background-soft'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                  Market Screeners
+                <FileText className="w-4 h-4 inline mr-2" />
+                Market Insights
               </Link>
-              <Link
-                to="/indicators"
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-              >
-                  Technical Indicators
-              </Link>
-              <Link
-                  to="/option-simulator" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-              >
-                  Option Simulator
-              </Link>
-              <Link
-                  to="/option-recommender" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  AI Strategy Recommender
-                </Link>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="text-sm font-medium text-muted-foreground">Trading Tools</div>
-              <div className="pl-4 space-y-2">
-                <Link 
-                  to="/trading-journal" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-              >
-                  Trading Journal
-              </Link>
-              <Link
-                  to="/trading-journal/analytics" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-              >
-                  Trading Analytics
-              </Link>
-                <Link 
-                  to="/trading-journal/settings" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Journal Settings
-                </Link>
-              </div>
-            </div>
-            
               <Link
                 to="/courses"
-              className={`block text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/courses') ? 'text-primary' : 'text-muted-foreground'
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
+                className={`block px-4 py-2 text-sm font-medium transition-colors hover:text-luxury-gold ${
+                  isActive('/courses') ? 'text-luxury-gold' : 'text-background-soft'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
+                <BookOpen className="w-4 h-4 inline mr-2" />
                 Courses
               </Link>
-
-            <Link 
-              to="/market-insights" 
-              className={`block text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/market-insights') ? 'text-primary' : 'text-muted-foreground'
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Market Insights
-            </Link>
-            <Link 
-              to="/charting" 
-              className={`block text-sm font-medium transition-colors hover:text-primary ${
-                isActive('/charting') ? 'text-primary' : 'text-muted-foreground'
-              }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Charts
-            </Link>
-            
-            {user && (
-              <div className="space-y-2 pt-4 border-t border-border">
               <Link
-                to="/dashboard"
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                to="/calculators"
+                className={`block px-4 py-2 text-sm font-medium transition-colors hover:text-luxury-gold ${
+                  isActive('/calculators') ? 'text-luxury-gold' : 'text-background-soft'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                Dashboard
+                <Calculator className="w-4 h-4 inline mr-2" />
+                Calculators
               </Link>
-                <Link 
-                  to="/trading-journal" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Trading Journal
-                </Link>
-                <Link 
-                  to="/trading-journal/settings" 
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Settings
-                </Link>
-                <button 
-                      onClick={() => {
-                        signOut();
-                    setIsMobileMenuOpen(false);
-                      }}
-                  className="block text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      Sign Out
-                </button>
-              </div>
-            )}
+              <Link
+                to="/ai-edge"
+                className={`block px-4 py-2 text-sm font-medium transition-colors hover:text-luxury-gold ${
+                  isActive('/ai-edge') ? 'text-luxury-gold' : 'text-background-soft'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Brain className="w-4 h-4 inline mr-2" />
+                AI Edge
+              </Link>
+              
+              {user && (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className={`block px-4 py-2 text-sm font-medium transition-colors hover:text-luxury-gold ${
+                      isActive('/dashboard') ? 'text-luxury-gold' : 'text-background-soft'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <BarChart3 className="w-4 h-4 inline mr-2" />
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm font-medium text-error hover:text-error/80"
+                  >
+                    <LogOut className="w-4 h-4 inline mr-2" />
+                    Sign Out
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
+      </div>
     </nav>
   );
 };

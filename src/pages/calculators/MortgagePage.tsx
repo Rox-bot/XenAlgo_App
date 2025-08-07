@@ -188,7 +188,7 @@ const MortgagePage = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-muted-foreground">Monthly EMI</span>
+                    <span className="text-sm font-medium text-text-cool">Monthly EMI</span>
                   </div>
                   <p className="text-2xl font-bold text-primary">{formatCurrency(results.monthlyPayment)}</p>
                 </CardContent>
@@ -198,7 +198,7 @@ const MortgagePage = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-emerald-500" />
-                    <span className="text-sm font-medium text-muted-foreground">Total Payment</span>
+                    <span className="text-sm font-medium text-text-cool">Total Payment</span>
                   </div>
                   <p className="text-2xl font-bold text-emerald-500">{formatCurrency(results.totalPayment)}</p>
                 </CardContent>
@@ -208,7 +208,7 @@ const MortgagePage = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <Percent className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-medium text-muted-foreground">Total Interest</span>
+                    <span className="text-sm font-medium text-text-cool">Total Interest</span>
                   </div>
                   <p className="text-2xl font-bold text-red-500">{formatCurrency(results.totalInterest)}</p>
                 </CardContent>

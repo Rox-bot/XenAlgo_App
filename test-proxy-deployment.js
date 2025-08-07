@@ -1,7 +1,7 @@
 // Test script for API Proxy deployment
 // Run this after deploying to Railway
 
-const PROXY_URL = 'https://your-api-proxy-service.railway.app'; // Replace with your actual URL
+const PROXY_URL = 'https://xen-algo-api-proxy-production.up.railway.app'; // Replace with your actual URL
 
 async function testProxyDeployment() {
   console.log('🧪 Testing API Proxy Deployment...\n');
