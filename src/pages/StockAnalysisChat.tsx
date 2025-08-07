@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Send, TrendingUp, TrendingDown, DollarSign, BarChart3, News, FileText, Clock, TrendingUp as TrendingUpIcon } from 'lucide-react';
+import { Loader2, Send, TrendingUp, TrendingDown, DollarSign, BarChart3, FileText, Clock, TrendingUp as TrendingUpIcon, Newspaper } from 'lucide-react';
 import { stockAnalysisService, type StockData, type NewsItem, type AnalysisResponse } from '@/lib/stockAnalysis';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -210,22 +210,22 @@ export default function StockAnalysisChat() {
                       }`}
                     >
                       <p className="text-sm">{message.content}</p>
-                      {message.stockData && (
-                        <div className="mt-2 p-2 bg-background rounded border">
+                                            {message.stockData && (
+                        <div className="mt-2 p-2 bg-card border border-border rounded">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="font-semibold">{message.stockData.symbol}</span>
-                                                         <Badge variant={message.stockData.change >= 0 ? 'default' : 'destructive'}>
-                               {message.stockData.change >= 0 ? (
-                                 <TrendingUp className="h-3 w-3 mr-1" />
-                               ) : (
-                                 <TrendingDown className="h-3 w-3 mr-1" />
-                               )}
-                               {stockAnalysisService.formatCurrency(message.stockData.price)}
-                             </Badge>
+                            <span className="font-semibold text-foreground">{message.stockData.symbol}</span>
+                            <Badge variant={message.stockData.change >= 0 ? 'default' : 'destructive'}>
+                              {message.stockData.change >= 0 ? (
+                                <TrendingUp className="h-3 w-3 mr-1" />
+                              ) : (
+                                <TrendingDown className="h-3 w-3 mr-1" />
+                              )}
+                              {stockAnalysisService.formatCurrency(message.stockData.price)}
+                            </Badge>
                           </div>
-                                                     <div className="text-xs text-muted-foreground">
-                             {message.stockData.change >= 0 ? '+' : ''}{stockAnalysisService.formatCurrency(message.stockData.change)} ({message.stockData.changePercent.toFixed(2)}%)
-                           </div>
+                          <div className="text-xs text-muted-foreground">
+                            {message.stockData.change >= 0 ? '+' : ''}{stockAnalysisService.formatCurrency(message.stockData.change)} ({message.stockData.changePercent.toFixed(2)}%)
+                          </div>
                         </div>
                       )}
                     </div>
@@ -294,54 +294,54 @@ export default function StockAnalysisChat() {
                 <TabsContent value="overview" className="h-full">
                   <ScrollArea className="h-full">
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                                                 <div className="text-center p-4 bg-muted rounded-lg">
-                           <div className="text-2xl font-bold">{stockAnalysisService.formatCurrency(selectedStock.price)}</div>
-                           <div className={`text-sm ${selectedStock.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                             {selectedStock.change >= 0 ? '+' : ''}{stockAnalysisService.formatCurrency(selectedStock.change)} ({selectedStock.changePercent.toFixed(2)}%)
-                           </div>
-                         </div>
-                         <div className="text-center p-4 bg-muted rounded-lg">
-                           <div className="text-lg font-semibold">{selectedStock.symbol}</div>
-                           <div className="text-sm text-muted-foreground">Market Cap</div>
-                           <div className="text-lg">{stockAnalysisService.formatMarketCap(selectedStock.marketCap)}</div>
-                         </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center p-4 bg-card border border-border rounded-lg">
+                          <div className="text-2xl font-bold text-foreground">{stockAnalysisService.formatCurrency(selectedStock.price)}</div>
+                          <div className={`text-sm font-medium ${selectedStock.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {selectedStock.change >= 0 ? '+' : ''}{stockAnalysisService.formatCurrency(selectedStock.change)} ({selectedStock.changePercent.toFixed(2)}%)
+                          </div>
+                        </div>
+                        <div className="text-center p-4 bg-card border border-border rounded-lg">
+                          <div className="text-lg font-semibold text-foreground">{selectedStock.symbol}</div>
+                          <div className="text-sm text-muted-foreground">Market Cap</div>
+                          <div className="text-lg text-foreground">{stockAnalysisService.formatMarketCap(selectedStock.marketCap)}</div>
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-muted rounded-lg">
+                                            <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 bg-card border border-border rounded-lg">
                           <div className="text-sm text-muted-foreground">P/E Ratio</div>
-                          <div className="text-lg font-semibold">{selectedStock.peRatio.toFixed(2)}</div>
+                          <div className="text-lg font-semibold text-foreground">{selectedStock.peRatio.toFixed(2)}</div>
                         </div>
-                                                 <div className="p-3 bg-muted rounded-lg">
-                           <div className="text-sm text-muted-foreground">EPS</div>
-                           <div className="text-lg font-semibold">{stockAnalysisService.formatCurrency(selectedStock.eps)}</div>
-                         </div>
-                        <div className="p-3 bg-muted rounded-lg">
+                        <div className="p-3 bg-card border border-border rounded-lg">
+                          <div className="text-sm text-muted-foreground">EPS</div>
+                          <div className="text-lg font-semibold text-foreground">{stockAnalysisService.formatCurrency(selectedStock.eps)}</div>
+                        </div>
+                        <div className="p-3 bg-card border border-border rounded-lg">
                           <div className="text-sm text-muted-foreground">ROE</div>
-                          <div className="text-lg font-semibold">{selectedStock.roe.toFixed(2)}%</div>
+                          <div className="text-lg font-semibold text-foreground">{selectedStock.roe.toFixed(2)}%</div>
                         </div>
-                        <div className="p-3 bg-muted rounded-lg">
+                        <div className="p-3 bg-card border border-border rounded-lg">
                           <div className="text-sm text-muted-foreground">Dividend Yield</div>
-                          <div className="text-lg font-semibold">{selectedStock.dividendYield.toFixed(2)}%</div>
+                          <div className="text-lg font-semibold text-foreground">{selectedStock.dividendYield.toFixed(2)}%</div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <h4 className="font-semibold">Trading Range</h4>
-                        <div className="grid grid-cols-3 gap-2 text-sm">
-                                                     <div>
-                             <div className="text-muted-foreground">Open</div>
-                             <div>{stockAnalysisService.formatCurrency(selectedStock.open)}</div>
-                           </div>
-                           <div>
-                             <div className="text-muted-foreground">High</div>
-                             <div>{stockAnalysisService.formatCurrency(selectedStock.high)}</div>
-                           </div>
-                           <div>
-                             <div className="text-muted-foreground">Low</div>
-                             <div>{stockAnalysisService.formatCurrency(selectedStock.low)}</div>
-                           </div>
+                                                <div className="grid grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <div className="text-muted-foreground">Open</div>
+                            <div className="text-foreground font-medium">{stockAnalysisService.formatCurrency(selectedStock.open)}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">High</div>
+                            <div className="text-foreground font-medium">{stockAnalysisService.formatCurrency(selectedStock.high)}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Low</div>
+                            <div className="text-foreground font-medium">{stockAnalysisService.formatCurrency(selectedStock.low)}</div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -412,36 +412,36 @@ export default function StockAnalysisChat() {
                   <ScrollArea className="h-full">
                     {messages.find(m => m.newsData)?.newsData && messages.find(m => m.newsData)?.newsData!.length > 0 ? (
                       <div className="space-y-4">
-                        {messages.find(m => m.newsData)?.newsData!.map((news, index) => (
-                          <div key={index} className="p-3 bg-muted rounded-lg">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-semibold text-sm line-clamp-2">{news.title}</h4>
-                              <Badge variant="outline" className="text-xs ml-2 flex-shrink-0">
-                                {news.source}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-3">
-                              {news.description}
-                            </p>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>{new Date(news.publishedAt).toLocaleDateString()}</span>
-                              <a
-                                href={news.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline"
-                              >
-                                Read more
-                              </a>
-                            </div>
-                          </div>
-                        ))}
+                                                 {messages.find(m => m.newsData)?.newsData!.map((news, index) => (
+                           <div key={index} className="p-3 bg-card border border-border rounded-lg">
+                             <div className="flex items-start justify-between mb-2">
+                               <h4 className="font-semibold text-sm line-clamp-2 text-foreground">{news.title}</h4>
+                               <Badge variant="outline" className="text-xs ml-2 flex-shrink-0">
+                                 {news.source}
+                               </Badge>
+                             </div>
+                             <p className="text-sm text-muted-foreground mb-2 line-clamp-3">
+                               {news.description}
+                             </p>
+                             <div className="flex items-center justify-between text-xs text-muted-foreground">
+                               <span>{new Date(news.publishedAt).toLocaleDateString()}</span>
+                               <a
+                                 href={news.url}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 className="text-primary hover:underline"
+                               >
+                                 Read more
+                               </a>
+                             </div>
+                           </div>
+                         ))}
                       </div>
                     ) : (
-                      <div className="text-center text-muted-foreground py-8">
-                        <News className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No recent news available</p>
-                      </div>
+                                               <div className="text-center text-muted-foreground py-8">
+                           <Newspaper className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                           <p>No recent news available</p>
+                         </div>
                     )}
                   </ScrollArea>
                 </TabsContent>
@@ -449,39 +449,39 @@ export default function StockAnalysisChat() {
                 <TabsContent value="metrics" className="h-full">
                   <ScrollArea className="h-full">
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                                                 <div className="p-4 bg-muted rounded-lg">
-                           <div className="text-sm text-muted-foreground">Volume</div>
-                           <div className="text-lg font-semibold">{stockAnalysisService.formatNumber(selectedStock.volume)}</div>
-                         </div>
-                         <div className="p-4 bg-muted rounded-lg">
-                           <div className="text-sm text-muted-foreground">Previous Close</div>
-                           <div className="text-lg font-semibold">{stockAnalysisService.formatCurrency(selectedStock.previousClose)}</div>
-                         </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-card border border-border rounded-lg">
+                          <div className="text-sm text-muted-foreground">Volume</div>
+                          <div className="text-lg font-semibold text-foreground">{stockAnalysisService.formatNumber(selectedStock.volume)}</div>
+                        </div>
+                        <div className="p-4 bg-card border border-border rounded-lg">
+                          <div className="text-sm text-muted-foreground">Previous Close</div>
+                          <div className="text-lg font-semibold text-foreground">{stockAnalysisService.formatCurrency(selectedStock.previousClose)}</div>
+                        </div>
                       </div>
 
                       <div className="space-y-2">
                         <h4 className="font-semibold">Valuation Metrics</h4>
-                        <div className="grid grid-cols-1 gap-2">
-                                                     <div className="flex justify-between p-2 bg-muted rounded">
-                             <span className="text-sm">Market Cap</span>
-                             <span className="font-semibold">{stockAnalysisService.formatMarketCap(selectedStock.marketCap)}</span>
-                           </div>
-                          <div className="flex justify-between p-2 bg-muted rounded">
-                            <span className="text-sm">P/E Ratio</span>
-                            <span className="font-semibold">{selectedStock.peRatio.toFixed(2)}</span>
+                                                <div className="grid grid-cols-1 gap-2">
+                          <div className="flex justify-between p-2 bg-card border border-border rounded">
+                            <span className="text-sm text-muted-foreground">Market Cap</span>
+                            <span className="font-semibold text-foreground">{stockAnalysisService.formatMarketCap(selectedStock.marketCap)}</span>
                           </div>
-                                                     <div className="flex justify-between p-2 bg-muted rounded">
-                             <span className="text-sm">EPS</span>
-                             <span className="font-semibold">{stockAnalysisService.formatCurrency(selectedStock.eps)}</span>
-                           </div>
-                          <div className="flex justify-between p-2 bg-muted rounded">
-                            <span className="text-sm">ROE</span>
-                            <span className="font-semibold">{selectedStock.roe.toFixed(2)}%</span>
+                          <div className="flex justify-between p-2 bg-card border border-border rounded">
+                            <span className="text-sm text-muted-foreground">P/E Ratio</span>
+                            <span className="font-semibold text-foreground">{selectedStock.peRatio.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between p-2 bg-muted rounded">
-                            <span className="text-sm">Dividend Yield</span>
-                            <span className="font-semibold">{selectedStock.dividendYield.toFixed(2)}%</span>
+                          <div className="flex justify-between p-2 bg-card border border-border rounded">
+                            <span className="text-sm text-muted-foreground">EPS</span>
+                            <span className="font-semibold text-foreground">{stockAnalysisService.formatCurrency(selectedStock.eps)}</span>
+                          </div>
+                          <div className="flex justify-between p-2 bg-card border border-border rounded">
+                            <span className="text-sm text-muted-foreground">ROE</span>
+                            <span className="font-semibold text-foreground">{selectedStock.roe.toFixed(2)}%</span>
+                          </div>
+                          <div className="flex justify-between p-2 bg-card border border-border rounded">
+                            <span className="text-sm text-muted-foreground">Dividend Yield</span>
+                            <span className="font-semibold text-foreground">{selectedStock.dividendYield.toFixed(2)}%</span>
                           </div>
                         </div>
                       </div>

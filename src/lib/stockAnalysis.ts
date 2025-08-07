@@ -1,4 +1,4 @@
-import { createClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface StockData {
   symbol: string;
@@ -43,7 +43,7 @@ export interface StockAnalysisResponse {
   analysis: AnalysisResponse;
 }
 
-const supabase = createClient();
+
 
 export class StockAnalysisService {
   private static instance: StockAnalysisService;
