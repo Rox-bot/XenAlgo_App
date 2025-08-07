@@ -131,6 +131,12 @@ const Navbar = () => {
                     Trading Journal
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/stock-analysis-chat" className="flex items-center gap-2 text-primary hover:text-luxury-gold">
+                    <DollarSign className="w-4 h-4" />
+                    Stock Analysis Chat
+                  </Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 

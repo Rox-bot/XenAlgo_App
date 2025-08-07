@@ -47,6 +47,7 @@ import TradingPsychologyGuardian from "./pages/TradingPsychologyGuardian";
 import Auth from "./pages/Auth";
 import AdminBlogGenerator from './pages/AdminBlogGenerator';
 import DynamicSectorAnalysis from './pages/DynamicSectorAnalysis';
+import StockAnalysisChat from './pages/StockAnalysisChat';
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,11 @@ const App = () => {
                     <Route path="/admin/sector-analysis" element={
                       <ProtectedRoute>
                         <DynamicSectorAnalysis />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/stock-analysis-chat" element={
+                      <ProtectedRoute>
+                        <StockAnalysisChat />
                       </ProtectedRoute>
                     } />
                     
